@@ -65,5 +65,13 @@ class WorkoutDB:
 # -- Workout Methods --
 
 
+# -- Exercise Methods --
+
+
+# -- Set Methods --
+
+
+# -- Combi Methods --
+
 
             
