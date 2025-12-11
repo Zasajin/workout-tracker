@@ -91,7 +91,55 @@ def build_calender(self) -> toga.Box:
             workout_dates.add(workout_date.day)
 
     # header (weekdays)
-    
+    header_box = toga.Box(style=Pack(direction=ROW, padding=2))
+    header_box.add(toga.Label("WK", style=Pack(width=40, padding=2, font_weight='bold')))
+
+    for day_name in ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]:
+
+        header_box.add(toga.Label(
+            day_name,
+            style=Pack(width=50, padding=2, text_align='center', font_weight='bold')
+        ))
+    self.calendar_box.add(header_box)
+
+    cal = calendar.monthcalendar(self.current_year, self.current_month)
+
+    for week in cal:
+
+        week_box = toga.Box(style=Pack(direction=ROW, padding=2))
+
+        first_day = next((d for d in week if d != 0), 1)
+        week_date = date(self.current_year, self.current_month, first_day)
+        week_number = week_date.isocalendar()[1]
+
+        week_box.add(toga.Label(
+            str(week_number),
+            style.Pack(width=40, padding=2, text_align='center', color='#666')
+        ))
+
+    for day in week:
+
+        if day == 0:
+
+            week_box.add(toga.Box(style=Pack(width=50, height=50, padding=2)))
+
+        else:
+
+            has_workout = day in workout_dates
+            day_btn = toga.Button(
+                str(day),
+                on_press=lambda widget, d=day: self.day_clicked(d),
+                style=Pack(
+                    width=50,
+                    height=50,
+                    padding=2,
+                    background_color='#4caf50' if has_workout else '#f0f0f0',
+                    color='white' if has_workout else 'black',
+                )
+            )
+            week_box.add(day_btn)
+
+        self.calendar_box.add(week_box)
 
 
 def main():
