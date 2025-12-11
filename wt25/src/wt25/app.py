@@ -76,6 +76,23 @@ def build_navigation(self) -> toga.Box:
 # build calender grid for desired month and year
 def build_calender(self) -> toga.Box:
 
+    self.calendar_box.clear()
+
+    workouts = self.db.get_all_workouts()
+    workout_dates = set()
+
+    # collect workout dates in currently selected month
+    for workout in workouts:
+
+        workout_date = datetime.strptime(workout['date'], "%Y-%m-%d").date()
+
+        if workout_date.month == self.current_month and workout_date.year == self.current_year:
+
+            workout_dates.add(workout_date.day)
+
+    # header (weekdays)
+    
+
 
 def main():
 

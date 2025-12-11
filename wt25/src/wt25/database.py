@@ -64,6 +64,17 @@ class WorkoutDB:
 
 # -- Workout Methods --
 
+    def get_all_workouts(self) -> list[dict[str, Any]]:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM workouts ORDER BY date DESC')
+        workouts = cursor.fetchall()
+
+        conn.close()
+
+        return [dict(row) for row in workouts]
 
 # -- Exercise Methods --
 
