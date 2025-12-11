@@ -43,6 +43,35 @@ class WorkoutTracker(toga.App):
 # build month navigation bar
 def build_navigation(self) -> toga.Box:
 
+        
+    # Previous month button
+    prev_btn = toga.Button(
+        "<",
+        on_press=self.prev_month,
+        style=Pack(width=50, padding=5)
+    )
+    
+    # Current month/year label
+    month_name = calendar.month_name[self.current_month]
+    self.month_label = toga.Label(
+        f"{month_name} {self.current_year}",
+        style=Pack(flex=1, text_align='center', font_size=16, padding=5)
+    )
+    
+    # Next month button
+    next_btn = toga.Button(
+        ">",
+        on_press=self.next_month,
+        style=Pack(width=50, padding=5)
+    )
+    
+    nav_box = toga.Box(style=Pack(direction=ROW, padding=5))
+    nav_box.add(prev_btn)
+    nav_box.add(self.month_label)
+    nav_box.add(next_btn)
+    
+    return nav_box
+
 
 # build calender grid for desired month and year
 def build_calender(self) -> toga.Box:
