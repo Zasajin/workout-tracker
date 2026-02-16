@@ -177,9 +177,44 @@ class WorkoutTracker(toga.App):
         self.show_day_details(clicked_date)
 
     
+    # displays the workout detils for a specific selected day
     def show_day_details(self, selected_date):
 
         self.selected_date = selected_date
+
+        # main container for details view
+        detail_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+    
+        # box for navigation tools
+        header_box = toga.Box(style=Pack(direction=ROW, padding=5))
+
+        # button to return to calendar grid
+        back_btn = toga.Button(
+            "Back",
+            on_press=lambda widget: self.show_calendar_view(),
+            style=Pack(width=80, padding=5)
+        )
+
+        # label displaying selected day
+        date_label = toga.label(
+            selected_date.strftime("%A, %B %d, %Y"),
+            style=Pack(flrx=1, text_align='center', font_size=16, padding=5)
+        )
+
+        # TODO: add button to add workout for selected day
+        create_workout_btn = toga.Button(
+            "Add Workout",
+            on_press=lambda widget: self.create_workout(selected_date)
+        )
+
+        # building header
+        header_box.add(back_btn)
+        header_box.add(date_label)
+        header_box.add(create_workout_btn)
+
+        # building whole scene
+        detail_box.add(header_box)
+        
 
 
     # builds and displays calendar view
@@ -197,6 +232,13 @@ class WorkoutTracker(toga.App):
         main_box.add(self.calendar_box)
 
         self.main_window.content = main_box
+
+
+    # TODO: logic for workout creation and 
+    def create_workout(self, workout_date):
+
+        # TODO: implement workout creation form and logic
+        print(f"Creating workout for {workout_date}")
 
 
 def main():
