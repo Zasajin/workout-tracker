@@ -201,21 +201,53 @@ class WorkoutTracker(toga.App):
             style=Pack(flrx=1, text_align='center', font_size=16, padding=5)
         )
 
-        # TODO: add button to add workout for selected day
-        create_workout_btn = toga.Button(
-            "Add Workout",
-            on_press=lambda widget: self.create_workout(selected_date)
-        )
+        # TODO: buttons for prev and next day
 
         # building header
         header_box.add(back_btn)
         header_box.add(date_label)
         header_box.add(create_workout_btn)
 
+        # fetch workouts of selected day from db
+        workouts = self.db.get_workouts_by_date(selected_date.strftime("%Y-%m-%d"))
+        # box to list workouts of the day
+        workout_list_box = toga.Box(style=Pack(direction=Column, padding=5, flex=1))
+
+        if workouts:
+
+            for workout in workouts:
+
+                workout_btn = toga.Button(
+                    workout['name'],
+                    on_press=lambda widget, w=workout: self.show_workout_detail(w),
+                    style=Pack(width=300, padding=5)
+                )
+
+                # add button for workout into list box
+                # enables concise overview and possibility to
+                # expand to see details
+                workout_list_box.add(workout_btn)
+
+        else:
+
+            none_label = toga.Label(
+                "No workouts logged for this day yet.",
+                style=Pack(padding=20, text_align='center')
+            )
+
+            # display message if no workouts logged for selected day
+            workout_list_box.add(none_label)
+
+        # button to add workout for selected day
+        create_workout_btn = toga.Button(
+            "Add Workout",
+            on_press=lambda widget: self.create_workout(selected_date)
+        )
+
         # building whole scene
         detail_box.add(header_box)
-        
-
+        detail_box.add(workout_list_box)
+        detail_box.add(create_workout_btn)
 
     # builds and displays calendar view
     # uses build_navigation for nav buttons
@@ -239,6 +271,10 @@ class WorkoutTracker(toga.App):
 
         # TODO: implement workout creation form and logic
         print(f"Creating workout for {workout_date}")
+
+
+    # TODO: expands workout details when a workout button is clicked
+    def show_workout_detail(self, workout):
 
 
 def main():
