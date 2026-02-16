@@ -64,6 +64,7 @@ class WorkoutDB:
 
 # -- Workout Methods --
 
+    # queries all workouts from db to display in calendar view
     def get_all_workouts(self) -> list[dict[str, Any]]:
 
         conn = self._get_connection()
@@ -75,6 +76,31 @@ class WorkoutDB:
         conn.close()
 
         return [dict(row) for row in workouts]
+
+
+    # queries workouts for specific date
+    def get_workouts_by_date(self, date: str) -> list[dict[str, Any]]:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT id, name, date, notes
+        FROM workouts
+        WHERE date = ?
+        ORDER BY id
+        """, (date,))
+
+        workouts = []
+        
+        for row in cursor.fetchall():
+
+            workouts.append(dict(row))
+
+        conn.close()
+
+        return workouts
+
 
 # -- Exercise Methods --
 
