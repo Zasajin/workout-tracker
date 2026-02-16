@@ -23,20 +23,9 @@ class WorkoutTracker(toga.App):
         self.current_month = today.month
         self.current_year = today.year
 
-        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
-
-        # month navigation
-        nav_box = self.build_navigation()
-        main_box.add(nav_box)
-
-        # calendar grid
-        self.calendar_box = toga.Box(style=Pack(direction=COLUMN, padding=5))
-        self.build_calendar()
-        main_box.add(self.calendar_box)
-
         # main window
         self.main_window = toga.MainWindow(title=self.formal_name)
-        self.main_window.content = main_box
+        self.show_calendar_view()
         self.main_window.show()
 
 
