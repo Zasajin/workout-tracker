@@ -143,6 +143,7 @@ class WorkoutTracker(toga.App):
             self.calendar_box.add(week_box)
 
 
+    # scroll to the previous month and update calendar
     def prev_month(self, widget):
 
         if self.current_month == 1:
@@ -157,6 +158,7 @@ class WorkoutTracker(toga.App):
         self.update_calendar()
 
 
+    # scroll to the next month and update calendar
     def next_month(self, widget):
 
         if self.current_month == 12:
@@ -171,6 +173,7 @@ class WorkoutTracker(toga.App):
         self.update_calendar()
 
 
+    # update the calendar to show the right month
     def update_calendar(self):
 
         month_name = calendar.month_name[self.current_month]
@@ -178,13 +181,33 @@ class WorkoutTracker(toga.App):
         self.build_calendar()
 
 
+    # handles display of details of a clicked day in the calendar
     def day_clicked(self, day):
 
         clicked_date = date(self.current_year, self.current_month, day)
-        self.main_window.info_dialog(
-            "Day Selected",
-            f"You clicked on {clicked_date.strftime('%Y-%m-%d')}"
-        )
+        self.show_day_details(clicked_date)
+
+    
+    def show_day_details(self, selected_date):
+
+        self.selected_date = selected_date
+
+
+    # builds and displays calendar view
+    # uses build_navigation for nav buttons
+    # uses build_calendar for calendar grid
+    def show_calendar_view(self):
+
+        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        nav_box = self.build_navigation()
+        main_box.add(nav_box)
+
+        self.calendar_box = toga.Box(style=Pack(direction=COLUMN, padding=5))
+        self.build_calendar()
+        main_box.add(self.calendar_box)
+
+        self.main_window.content = main_box
 
 
 def main():
