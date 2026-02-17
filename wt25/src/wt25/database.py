@@ -37,24 +37,34 @@ class WorkoutDB:
             )
         ''')
 
-        # create exercises table
+        # create exercises master table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS exercises (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 workout_id INTEGER NOT NULL,
-                name TEXT NOT NULL,
-                FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
+                name TEXT NOT NULL UNIQUE,
             )
+        ''')
+
+        # junction for exercise/workout linking
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS workout_exercises (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                workout_id INTEGER NOT NULL,
+                exercise_id INTEGER NOT NULL,
+                FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE,
+                FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
+                )
         ''')
 
         # create sets table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS sets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                exercise_id INTEGER NOT NULL,
+                workout_exercise_id INTEGER NOT NULL,
                 reps INTEGER NOT NULL,
                 weight REAL NOT NULL,
-                FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
+                FOREIGN KEY (workout_exercise_id) REFERENCES workout_exercises(id) ON DELETE CASCADE
             )
         ''')
 
@@ -101,9 +111,64 @@ class WorkoutDB:
 
         return workouts
 
+    
+    # adds new workout to db, return id for exefcise linking
+    def add_workout(self, name: str, date:str) -> int:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO workouts (name, date)
+        VALUES (?, ?)
+        """, (name, date))
+        
+        workout_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+
+        return workout_id
+
 
 # -- Exercise Methods --
 
+    # queries all exercises from db
+    def get_all_exercises(self) -> list[dict[str, Any]]:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT id, name FROM exercises ORDER BY name')
+        exercises = [dict(row) for row in cursor.fetchall()]
+
+        conn.close()
+
+        return exercises
+
+
+    # adds new exercise to db, avoiding redundancys
+    # TODO: refine to handle case sensitivity (Bench vs bench)
+    def add_new_exercise(self, name: str) -> int:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        try:
+
+            cursor.execute('INSERT INTO exercises (name) VALUES (?)', (name,))
+            exercise_id = cursor.lastrowid
+            conn.commit()
+        
+        except sqlite3.IntegrityError:
+
+            cursor.execute('SELECT id FROM exercises WHERE name = ?', (name,))
+            exercise_id = cursor.fetchone()[0]
+
+        finally:
+
+            conn.close()
+
+        return exercise_id
 
 # -- Set Methods --
 
