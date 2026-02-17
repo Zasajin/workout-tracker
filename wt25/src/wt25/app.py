@@ -5,7 +5,7 @@ Tracker for workouts and exercise progressions
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import calendar
 
 from wt25.database import WorkoutDB
@@ -196,22 +196,33 @@ class WorkoutTracker(toga.App):
         )
 
         # label displaying selected day
-        date_label = toga.label(
+        date_label = toga.Label(
             selected_date.strftime("%A, %B %d, %Y"),
-            style=Pack(flrx=1, text_align='center', font_size=16, padding=5)
+            style=Pack(flex=1, text_align='center', font_size=16, padding=5)
         )
 
-        # TODO: buttons for prev and next day
+        prev_day_btn = toga.Button(
+            "<",
+            on_press=lambda widget: self.show_day_details(selected_date - timedelta(days=1)),
+            style=Pack(width=50, padding=5)
+        )
+
+        next_day_btn = toga.Button(
+            ">",
+            on_press=lambda widget: self.show_day_details(selected_date + timedelta(days=1)),
+            style=Pack(width=50, padding=5)
+        )
 
         # building header
         header_box.add(back_btn)
+        header_box.add(prev_day_btn)
         header_box.add(date_label)
-        header_box.add(create_workout_btn)
+        header_box.add(next_day_btn)
 
         # fetch workouts of selected day from db
         workouts = self.db.get_workouts_by_date(selected_date.strftime("%Y-%m-%d"))
         # box to list workouts of the day
-        workout_list_box = toga.Box(style=Pack(direction=Column, padding=5, flex=1))
+        workout_list_box = toga.Box(style=Pack(direction=COLUMN, padding=5, flex=1))
 
         if workouts:
 
@@ -249,6 +260,8 @@ class WorkoutTracker(toga.App):
         detail_box.add(workout_list_box)
         detail_box.add(create_workout_btn)
 
+        self.main_window.content = detail_box
+
     # builds and displays calendar view
     # uses build_navigation for nav buttons
     # uses build_calendar for calendar grid
@@ -275,6 +288,7 @@ class WorkoutTracker(toga.App):
 
     # TODO: expands workout details when a workout button is clicked
     def show_workout_detail(self, workout):
+        pass
 
 
 def main():
