@@ -85,7 +85,7 @@ class WorkoutDB:
         cursor = conn.cursor()
 
         cursor.execute("""
-        SELECT id, name, date, notes
+        SELECT id, name, date
         FROM workouts
         WHERE date = ?
         ORDER BY id
