@@ -175,5 +175,38 @@ class WorkoutDB:
 
 # -- Combi Methods --
 
+    # queries exercises and sets for a given workout
+    def get_workout_exercises(self, workout_id: int) -> list[dict[str, Any]]:
 
-            
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        # query workout exercises
+        cursor.execute("""
+        SELECT
+        w.id AS workout_exercise_id,
+        e.id AS exercise_id,
+        e.name AS exercise_name
+        FROM workout_exercises w
+        JOIN exercises e ON w.exercise_id = e.id
+        WHERE we.workout_id = ?
+        ORDER BY we.id
+        """, (workout_id,))
+
+        exercises = [dict(row) for row in cursor.fetchall()]
+
+        # query details for each exercise
+        for exercise in exercises:
+
+            cursor.execute("""
+            SELECT id, reps, weight
+            FROM sets
+            WHERE workout_exercise_id = ?
+            ORDER BY id
+            """, (exercise['workout_exercise_id'],))
+
+            exercise['sets'] = [dict(row) for row in cursor.fetchall()]
+
+        conn.close()
+
+        return exercises
