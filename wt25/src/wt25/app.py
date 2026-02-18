@@ -432,19 +432,120 @@ class WorkoutTracker(toga.App):
         self.main_window.content = detail_box
 
 
-    # TODO: adding exercise to workout
+    # adding exercise to workout
     def add_exercise(self, workout):
-        pass
+        
+        # main display
+        form_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        # header with selected workout name
+        header_label = toga.Label(
+            f"Add Exercise to {workout['name']}",
+            style=Pack(padding=10, font_size=16, font_weight='bold')
+        )
+
+        # input to select existing or enter new exercise
+        exercise_label = toga.Label(
+            "Select Exercise:",
+            style=Pack(padding=5)
+        )
+
+        # fetch existing exercises from db to display
+        existing_exercises = self.db.get_all_exercises()
+
+        exercise_items = [ex['name'] for ex in existing_exercises]
+        exercise_items.append("--Add new exercise--")
+
+        # display for existing exercises
+        self.exercise_select = toga.Selection(
+            items=exercise_items,
+            on_change=lambda widget: self.toggle_new_exercise_input(widget),
+            style=Pack(padding=5, width=300)
+        )
+
+        # input window for new exercise
+        self.new_exercise_input = toga.TextInput(
+            placeholder="Enter new exercise name",
+            style=Pack(padding=5, width=300)
+        )
+        self.new_exercise_box = toga.Box(style=Pack(direction=COLUMN))
+
+        # box for cancel and save buttons
+        button_box = toga.Box(style=Pack(direction=ROW, padding=10))
+
+        cancel_btn = toga.Button(
+            "Cancel",
+            on_press=lambda widget: self.show_workout_detail(workout),
+            style=Pack(padding=5, width=100)
+        )
+
+        save_btn = toga.Button(
+            "Save",
+            on_press=lambda widget: self.save_exercise(workout),
+            style=Pack(padding=5, width=100)
+        )
+
+        # build button box
+        button_box.add(cancel_btn)
+        button_box.add(save_btn)
+
+        # build main display
+        form_box.add(header_label)
+        form_box.add(exercise_label)
+        form_box.add(self.exercise_select)
+        form_box.add(self.new_exercise_box)
+        form_box.add(button_box)
+
+        self.main_window.content = form_box
 
 
-    # TODO: toggle input window for new exercises
+    # toggle input window for new exercises
     def toggle_new_exercise_input(self, widget):
-        pass
+        
+        if widget.value == "--Add new exercise--":
+
+            self.new_exercise_box.add(self.new_exercise_input)
+
+        else:
+
+            self.new_exercise_box.clear()
 
 
-    # TODO: save exercise to workout in db
+    # save exercise to workout in db
     def save_exercise(self, workout_id):
+        
+        selected = self.exercise_select.value
+
+        if selected == "--Add new exercise--":
+
+            new_name = self.new_exercise_input.value.strip()
+
+            if not new_name:
+
+                self.main_window.error.dialog(
+                    "Error",
+                    "Exercise name cannot be empty."
+                )
+
+                return
+
+            exercise_id = self.db.add_new_exercise(new_name)
+
+        else:
+
+            all_exercises = self.db.get_all_exercises()
+            exercise_id = next(ex['id'] for ex in all_exercises if ex['name'] == selected)
+
+        workout_exercise_id = self.db.link_exercise_to_workout(workout['id'], exercise_id)
+
+        self.add_sets(workout, workout_exercise_id)
+
+
+    # TODO: add set form/logic
+    def add_sets():
         pass
+            
+
 
 def main():
 
