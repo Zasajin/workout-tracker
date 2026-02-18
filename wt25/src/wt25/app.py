@@ -279,11 +279,69 @@ class WorkoutTracker(toga.App):
         self.main_window.content = main_box
 
 
-    # TODO: logic for workout creation and 
+    # workout creation form and logic for selected day 
     def create_workout(self, workout_date):
 
-        # TODO: implement workout creation form and logic
-        print(f"Creating workout for {workout_date}")
+        # main display box
+        form_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        header_label = toga.Label(
+            f"New Workout - {workout_date.strftime('%d, %m, %Y')}",
+            style=Pack(padding=10, font_size=16, font_weight='bold', text_align='center')
+        )
+
+        # input and display of workout name
+        name_label = toga.Label("Workout Name:", style=Pack(padding=5))
+        self.name_input = toga.TextInput(
+            placeholder="e.g. Leg Day",
+            style=Pack(padding=5, width=300)
+        )
+
+        # buttons to save/cancel workout creation
+        button_box = toga.Box(style=Pack(direction=ROW, padding=10))
+        cancel_btn = toga.Button(
+            "Cancel",
+            on_press=lambda widget: self.show_day_details(workout_date),
+            style=Pack(padding=5, width=100)
+        )
+        save_btn = toga.Button(
+            "Cancel",
+            on_press=lambda widget: self.save_workout(workout_date),
+            style=Pack(padding=5, width=100)
+        )
+        # build button box
+        button_box.add(cancel_btn)
+        button_box.add(save_btn)
+
+        # build whole display
+        form_box.add(header_label)
+        form_box.add(name_label)
+        form_box.add(self.name_input)
+        form_box.add(button_box)
+
+        self.main_window.content = form_box
+
+    
+    # saves workout to db
+    def save_workout(self, workout_date):
+
+        name = self.name_input.value.strip()
+
+        if not name:
+
+            self.main_window.error.dialog(
+                "Error",
+                "Workout name cannot be empty."
+            )
+
+            return
+
+        self.db.add_workout(
+            name = name,
+            date = workout_date.strftime("%d-%m-%Y")
+        )
+
+        self.show_day_details(workout_date)
 
 
     # TODO: expands workout details when a workout button is clicked
