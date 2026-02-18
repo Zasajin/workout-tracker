@@ -210,3 +210,7 @@ class WorkoutDB:
         conn.close()
 
         return exercises
+
+
+    # TODO: add method to link exercise to workout
+    def link_exercise_to_workout(self, workout_id: int, exercise_id: int) -> int:
