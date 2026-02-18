@@ -542,9 +542,100 @@ class WorkoutTracker(toga.App):
 
 
     # TODO: add set form/logic
-    def add_sets():
-        pass
+    def add_sets(self, workout, workout_exercise_id):
+        
+        # main display box
+        form_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        header_label = toga.Label(
+            "Add sets",
+            style=Pack(padding=10, font_size=16, font_weight='bold')
+        )
+
+        # reps section for a set
+        reps_label = toga.Label("Reps:", style=Pack(padding=5))
+
+        self.reps_input = toga.NumberInput(
+            min=0,
+            max=999,
+            step=1,
+            style=Pack(padding=5, width=300)
+        )
+
+        # weight section for a set
+        weight_label = toga.Label("Weight (kg):", style=Pack(padding=5))
+
+        self.weight_input = toga.NumberInput(
+            min=0,
+            max=999,
+            step=0.125,
+            style=Pack(padding=5, width=300)
+        )
+
+        # display element for adding a set/finishing and returning to workout details
+        button_box = toga.Box(style=Pack(direction=ROW, padding=10))
+
+        # finish adding sets and return to workout details
+        done_btn = toga.Button(
+            "Done",
+            on_press=lambda widget: self.show_workout_detail(workout),
+            style=Pack(padding=5, width=100)
+        )
+
+        # add a set
+        add_set_btn = toga.Button(
+            "Add set",
+            on_press=lambda widget: self.save_set(workout, workout_exercise_id),
+            style=Pack(padding=5, width=100)
+        )
+
+        # build button box
+        button_box.add(done_btn)
+        button_box.add(add_set_btn)
             
+        # added sets feedback
+        self.sets_list_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        # build main display
+        form_box.add(header_label)
+        form_box.add(reps_label)
+        form_box.add(self.reps_input)
+        form_box.add(weight_label)
+        form_box.add(self.weight_input)
+        form_box.add(button_box)
+        form_box.add(self.sets_list_box)
+
+        self.main_window.content = form_box
+
+
+    # saves a set to db, allows multiple additions
+    def save_set(self, workout, workout_exercise_id):
+
+        reps = self.reps_input.value
+        weight = self.weight_input.value
+
+        if reps is None or weight is None:
+
+            self.main_window.error.dialog(
+                "Error",
+                "Reps and weight must be provided."
+            )
+            
+            return
+
+        # save to db
+        self.db.add_set(workout_exercise_id, int(reps), float(weight))
+
+        # feedback for added set
+        set_label = toga.Label(
+            f"Added {int(reps)} reps x {float(weight)} kg",
+            style=Pack(padding=5)
+        )
+        self.sets_list_box.add(set_label)
+
+        # reset inputs for next set
+        self.reps_input.value = None
+        self.weight_input.value = None
 
 
 def main():

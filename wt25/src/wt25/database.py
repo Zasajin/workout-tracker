@@ -172,6 +172,22 @@ class WorkoutDB:
 
 # -- Set Methods --
 
+    # adds new set to db, linked to an exercise in a workout
+    def add_set(self, workout_exercise_id: int, reps: int, weight: float) -> int:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO sets (workout_exercise_id, reps, weight)
+        VALUES (?, ?, ?)
+        """, (workout_exercise_id, reps, weight))
+
+        set_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+
+        return set_id
 
 # -- Combi Methods --
 
