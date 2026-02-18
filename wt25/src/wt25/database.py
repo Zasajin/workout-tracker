@@ -212,5 +212,20 @@ class WorkoutDB:
         return exercises
 
 
-    # TODO: add method to link exercise to workout
+    # links exercise to workout, returns workout_exercise_id
     def link_exercise_to_workout(self, workout_id: int, exercise_id: int) -> int:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO workout_exercises (workout_id, exercise_id)
+        VALUES (?, ?)
+        """, (workout_id, exercise_id))
+
+        workout_exercise_id = cursor.lastrowid
+
+        conn.commit()
+        conn.close()
+
+        return workout_exercise_id
