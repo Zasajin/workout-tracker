@@ -417,6 +417,13 @@ class WorkoutTracker(toga.App):
                 )
                 exercise_box.add(no_exercise_label)
 
+        # button for workout deletion
+        delete_btn = toga.Button(
+            "Delete Workout",
+            on_press=lambda widget: self.confirm_delete_workout(workout),
+            style=Pack(padding=10, background_color='#d32f2f')
+        )
+
         # button to add exercise to workout
         add_exercise_btn = toga.Button(
             "Add Exercise",
@@ -427,6 +434,7 @@ class WorkoutTracker(toga.App):
         # build whole display
         detail_box.add(header_box)
         detail_box.add(exercises_list_box)
+        detail_box.add(delete_btn)
         detail_box.add(add_exercise_btn)
 
         self.main_window.content = detail_box
@@ -541,7 +549,7 @@ class WorkoutTracker(toga.App):
         self.add_sets(workout, workout_exercise_id)
 
 
-    # TODO: add set form/logic
+    # add set to exercise form/logic
     def add_sets(self, workout, workout_exercise_id):
         
         # main display box
@@ -636,6 +644,25 @@ class WorkoutTracker(toga.App):
         # reset inputs for next set
         self.reps_input.value = None
         self.weight_input.value = None
+
+
+    # delete workout confirmation dialog
+    def confirm_delete_workout(self, workout):
+
+        self.main_window.confirm_dialog(
+            "Delete Workout",
+            f"Delete '{workout['name']}' ('{workout['date']}') and all its exercises? This action cannot be undone.",
+            on_result=lambda result: self.delete_workout(workout, result)
+        )
+
+
+    # workout deletion handling depending of final choice
+    def delete_workout(self, workout, confirmed):
+
+        if confirmed:
+
+            self.db.delete_workout(workout['id'])
+            self.show_day_details(workout['date'])
 
 
 def main():

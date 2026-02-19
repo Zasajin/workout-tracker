@@ -129,6 +129,17 @@ class WorkoutDB:
         return workout_id
 
 
+    # delete a workout and all linked exercises/sets
+    def delete_workout(self, workout_id: int) -> None:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('DELETE FROM workouts WHERE id = ?', (workout_id,))
+
+        conn.commit()
+        conn.close()
+
 # -- Exercise Methods --
 
     # queries all exercises from db
