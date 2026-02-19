@@ -267,3 +267,65 @@ class WorkoutDB:
         conn.close()
 
         return workout_exercise_id
+
+
+    # get a list of all done exercises over all workouts
+    def all_done_exercises(self) -> lsit[str]:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT DISTINCT e.name
+        FROM exercises e
+        JOIN workout_exercises we ON e.id = we.exercise_id
+        ORDER BY e.name
+        """)
+
+        exercises = cursor.fetchall()
+        conn.close()
+
+        return [dict(ex) for ex in exercises]
+
+
+    # get stats for workout exercises for progress plotting
+    def get_exercise_stats(self, exercise_id: int) -> dict:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT 
+            w.date,
+            MAX(s.weight) AS max_weight)
+        FROM workouts w
+        JOIN workout_exercises we ON w.id = we.workout_id
+        JOIN sets s ON we.id = s.workout_exercise_id
+        WHERE we.exercise_id = ?
+        GROUP BY w.date
+        ORDER BY w.date
+        """, (exercise_id,))
+
+        data_points = [dict(row) for row in cursor.fetchall()]
+
+        if not data_points:
+
+            conn.close()
+
+            return None
+
+        weights = [d['max_weight'] for d in data_points]
+
+        stats = {
+
+            'start_weight': weights[0],
+            'personal_best': max(weights),
+            'last_weight': weights[-1]
+            'average_weight': sum(weights) / len(weights)
+        }
+
+        conn.close()
+
+        return {'data_points': data_points,
+        'stats': stats
+        }
