@@ -710,24 +710,160 @@ class WorkoutTracker(toga.App):
             self.show_workout_detail(workout)
 
 
-    #TODO: chart generator (png bytes)
+    # chart generator (png bytes)
     def generate_progress_chart(self, data_points) -> bytes:
-        pass
+        
+        dates = [datetime.strptime(d['date'], '%d-%m-%Y') for d in data_points]
+        weights = [d['weight'] for d in data_points]
+
+        fix, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(dates, weights, marker='o', linestyle='-', linewidth=2, markersize=6)
+
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Weight (kg)')
+        ax.set_title('Progress Over Time')
+        ax.grid(True, alpha=0.3)
+
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
+        plt.xticks(rotation=45)
+
+        plt.tight_layout()
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', dpi=100)
+        buf.seek(0)
+        chart_bytes = buf.read()
+        buf.close()
+        plt.close(fig)
+
+        return chart_bytes
 
     
-    #TODO: progress chart display
+    # progress chart display
     def show_progress(self):
-        pass
+        
+        # main display box
+        progress_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
 
-    
-    # TODO: loads and displays progress for selected exercise
+        # header row with exercise dropdown and back button
+        header_box = toga.Box(style=Pack(direction=ROW, padding=10))
+
+        exercises = self.db.all_done_exercises()
+
+        if not exercises:
+
+            progress_box.add(toga.Label(
+                "No exercises logged yet.",
+                style=Pack(padding=10)
+            ))
+            self.main_window.content = progress_box
+
+            return
+
+        # dropdown exercise selector
+        exercise_selector = toga.Selection(
+            items=[ex['name'] for ex in exercises],
+            on_change=lambda w: self.load_exercise_progress(exercises, w.value),
+            style=Pack(flex=1, padding=5)
+        )
+
+        back_btn = toga.Button(
+            "Back",
+            on_press=lambda w: self.show_calendar_view(),
+            style=Pack(width=80, padding=5)
+        )
+
+        # build header
+        header_box.add(exercise_selector)
+        header_box.add(back_btn)
+
+        # charting and stats
+        self.chart_box = toga.Box(style=Pack(direction=COLUMN, padding=10, alignment='center'))^
+        self.stats_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        # build whole statistics display
+        progress_box.add(header_box)
+        progress_box.add(self.chart_box)
+        progress_box.add(self.stats_box)
+
+        self.main_window.content = progress_box
+
+        # default loadout
+        if exercises:
+
+            self.load_exercise_progress(exercises, exercises[0]['name'])
+
+
+    # loads and displays progress for selected exercise
     def load_exercise_progress(self, exercise, exercise_name):
-        pass
+        
+        # fetch exercise id and related stats from db
+        exercise_id = next(ex['id'] for ex in exercises if ex['name'] == exercise_name)
+        progress_data = self.db.get_exercise_stats(exercise_id)
+
+        if not progress_data:
+
+            self.chart_box.clear()
+            self.stats_box.clear()
+            self.chart_box.add(toga.Label("No data for this exercise.",
+            style=Pack(padding=10)))
+
+            return
+
+        # clear for new data to display
+        self.chart_box.clear()
+        self.stats_box.clear()
+
+        # bytes for chart
+        chart_bytes = self.generate_progress_chart(progress_data)
+
+        # for chart byte writing to temporary file
+        import tempfile
+
+        # write chart bytes to temporary file to load into Toga ImageView
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as f:
+
+            f.write(chart_bytes)
+            chart_path = f.name
+
+        # form graph from bytes
+        chart_image = toga.ImageView(
+            toga.Image(chart_path),
+            style=Pack(width=600, height=400, padding=10)
+        )
+
+        # stats dict
+        stats = progress_data['stats']
+
+        # 2x2 grid for stats display
+        row1 = toga.Box(style=Pack(direction=ROW, padding=5))
+        row2 = toga.Box(style=Pack(direction=ROW, padding=5))
+
+        # feed data for 2x2 grid
+        row1.add(self._stat_box("Start Weight", f"{stats['start_weight']:.3f} kg"))
+        row1.add(self._stat_box("Personal Best", f"{stats['personal_best']:.3f} kg"))
+        row2.add(self._stat_box("Last Weight", f"{stats['last_weight']:.3f} kg"))
+        row2.add(self._stat_box("Average Weight", f"{stats['average_weight']:.3f} kg"))
+
+        # build graph and 2x2 grid display
+        self.chart_box.add(chart_image)
+        self.stats_box.add(row1)
+        self.stats_box.add(row2)   
 
     
-    # TODO: helper for stat box creation
+    # helper for stat box creation
     def _stat_box(self, label, value):
-        pass
+        
+        box = toga.Box(style=Pack(direction=COLUMN, padding=10, flex=1, alignment='center'))
+
+        label_widget = toga.Label(label, style=Pack(font_size=10, padding=5))
+        value_widget = toga.Label(value, style=Pack(font_size=16, padding=5, font_weight='bold'))
+
+        box.add(label_widget)
+        box.add(value_widget)
+
+        return box
+
 
 def main():
 
