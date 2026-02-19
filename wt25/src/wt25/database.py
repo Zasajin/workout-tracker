@@ -41,8 +41,7 @@ class WorkoutDB:
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS exercises (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                workout_id INTEGER NOT NULL,
-                name TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL UNIQUE COLLATE NOCASE
             )
         ''')
 
@@ -147,7 +146,7 @@ class WorkoutDB:
 
 
     # adds new exercise to db, avoiding redundancys
-    # TODO: refine to handle case sensitivity (Bench vs bench)
+    # case insensitivity achieved by COLLATE NOCASE in table creation
     def add_new_exercise(self, name: str) -> int:
 
         conn = self._get_connection()
