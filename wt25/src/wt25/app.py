@@ -2,11 +2,14 @@
 Tracker for workouts and exercise progressions
 """
 
+import calendar
+from datetime import datetime, date, timedelta
+import io
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
-from datetime import datetime, date, timedelta
-import calendar
 
 from wt25.database import WorkoutDB
 
@@ -271,11 +274,19 @@ class WorkoutTracker(toga.App):
         main_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
 
         nav_box = self.build_navigation()
-        main_box.add(nav_box)
 
         self.calendar_box = toga.Box(style=Pack(direction=COLUMN, padding=5))
         self.build_calendar()
+
+        progress_btn = toga.Button(
+            "Progress Charts",
+            on_press=lambda w: self.show_progress(),
+            style=Pack(alignment='center', padding=10)
+        )
+
+        main_box.add(nav_box)
         main_box.add(self.calendar_box)
+        main_box.add(progress_btn)
 
         self.main_window.content = main_box
 
@@ -699,6 +710,24 @@ class WorkoutTracker(toga.App):
             self.show_workout_detail(workout)
 
 
+    #TODO: chart generator (png bytes)
+    def generate_progress_chart(self, data_points) -> bytes:
+        pass
+
+    
+    #TODO: progress chart display
+    def show_progress(self):
+        pass
+
+    
+    # TODO: loads and displays progress for selected exercise
+    def load_exercise_progress(self, exercise, exercise_name):
+        pass
+
+    
+    # TODO: helper for stat box creation
+    def _stat_box(self, label, value):
+        pass
 
 def main():
 
