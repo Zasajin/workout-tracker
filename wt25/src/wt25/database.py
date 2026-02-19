@@ -180,6 +180,18 @@ class WorkoutDB:
 
         return exercise_id
 
+
+    # delete exercise from a workout
+    def del_linked_exercise(self, workout_exercise_id: int) -> None:
+
+        conn = self._get_connection()
+        cursor = conn. cursor()
+
+        cursor.execute('DELETE FROM workout_exercises WHERE id = ?', (workout_exercise_id,))
+
+        conn.commit()
+        conn.close()
+
 # -- Set Methods --
 
     # adds new set to db, linked to an exercise in a workout

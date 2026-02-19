@@ -383,11 +383,26 @@ class WorkoutTracker(toga.App):
 
             for exercise in exercises:
 
+                # row for each exercise with name and delete button
+                exercise_row = toga.Box(style=Pack(direction=ROW, padding=5))
+
                 exercise_label = toga.Label(
                     exercise['exercise_name'],
                     style=Pack(padding=5, font_size=14, font_weight='bold')
                 )
-                exercise_box.add(exercise_label)
+
+                delete_exercise_btn = toga.Button(
+                    "X",
+                    on_press=lambda w, ex=exercise: self.confirm_delete_exercise(workout, ex),
+                    style=Pack(width=40, background_color='#d32f2f')
+                )
+
+                # build exercise row
+                exercise_row.add(exercise_label)
+                exercise_row.add(delete_exercise_btn)
+
+                # add exercise row per exercise to exercises box
+                exercises_box.add(exercise_row)
 
                 if exercise['sets']:
 
@@ -663,6 +678,26 @@ class WorkoutTracker(toga.App):
 
             self.db.delete_workout(workout['id'])
             self.show_day_details(workout['date'])
+
+
+    # delete exercise from workout confirmation dialog
+    def confirm_delete_exercise(self, workout_exercise_id):
+
+        self.main_window.confirm_dialog(
+            "Delete Exercise",
+            f"Delete this exercise from the workout?",
+            on_result=lambda result: self.delete_exercise(workout, exercise, result)
+        )
+
+
+    # exercise (from workout) deletion handling depending on final choice
+    def delete_exercise(self, workout_exercise_id, confirmed):
+
+        if confirmed:
+
+            self.db.del_linked_exercise(exercise['workout_exercise_id'])
+            self.show_workout_detail(workout)
+
 
 
 def main():
