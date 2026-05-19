@@ -7,7 +7,7 @@ class WorkoutDB:
 
 
     # initialize database
-    def __init__(self, db_path: "workouts.db"):
+    def __init__(self, db_path: str = "workouts.db"):
 
         self.db_path = db_path
         self._create_tables()
@@ -227,8 +227,8 @@ class WorkoutDB:
         e.name AS exercise_name
         FROM workout_exercises w
         JOIN exercises e ON w.exercise_id = e.id
-        WHERE we.workout_id = ?
-        ORDER BY we.id
+        WHERE w.workout_id = ?
+        ORDER BY w.id
         """, (workout_id,))
 
         exercises = [dict(row) for row in cursor.fetchall()]
@@ -270,13 +270,13 @@ class WorkoutDB:
 
 
     # get a list of all done exercises over all workouts
-    def all_done_exercises(self) -> lsit[str]:
+    def all_done_exercises(self) -> list[dict[str, Any]]:
 
         conn = self._get_connection()
         cursor = conn.cursor()
 
         cursor.execute("""
-        SELECT DISTINCT e.name
+        SELECT DISTINCT e.id, e.name
         FROM exercises e
         JOIN workout_exercises we ON e.id = we.exercise_id
         ORDER BY e.name
@@ -297,7 +297,7 @@ class WorkoutDB:
         cursor.execute("""
         SELECT 
             w.date,
-            MAX(s.weight) AS max_weight)
+            MAX(s.weight) AS max_weight
         FROM workouts w
         JOIN workout_exercises we ON w.id = we.workout_id
         JOIN sets s ON we.id = s.workout_exercise_id
@@ -320,12 +320,16 @@ class WorkoutDB:
 
             'start_weight': weights[0],
             'personal_best': max(weights),
-            'last_weight': weights[-1]
+            'last_weight': weights[-1],
             'average_weight': sum(weights) / len(weights)
+
         }
 
         conn.close()
 
-        return {'data_points': data_points,
+        return {
+
+        'data_points': data_points,
         'stats': stats
+
         }

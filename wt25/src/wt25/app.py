@@ -317,7 +317,7 @@ class WorkoutTracker(toga.App):
             style=Pack(padding=5, width=100)
         )
         save_btn = toga.Button(
-            "Cancel",
+            "Save",
             on_press=lambda widget: self.save_workout(workout_date),
             style=Pack(padding=5, width=100)
         )
@@ -341,7 +341,7 @@ class WorkoutTracker(toga.App):
 
         if not name:
 
-            self.main_window.error.dialog(
+            self.main_window.error_dialog(
                 "Error",
                 "Workout name cannot be empty."
             )
@@ -350,7 +350,7 @@ class WorkoutTracker(toga.App):
 
         self.db.add_workout(
             name = name,
-            date = workout_date.strftime("%d-%m-%Y")
+            date = workout_date.strftime("%Y-%m-%d")
         )
 
         self.show_day_details(workout_date)
@@ -423,16 +423,16 @@ class WorkoutTracker(toga.App):
                             f" {set_data['reps']} reps x {set_data['weight']} kg",
                             style=Pack(padding_left=20, padding_top=2)
                         )
-                        exercise_box.add(set_label)
+                        exercises_box.add(set_label)
 
-            # no sets logged for exercise yet
-            else:
+                # no sets logged for exercise yet
+                else:
 
-                none_label = toga.Label(
-                    " No sets logged yet. ",
-                    style=Pack(padding_left=20, padding_top=2, color='#888')
-                )
-                exercise_box.add(none_label)
+                    none_label = toga.Label(
+                        " No sets logged yet. ",
+                        style=Pack(padding_left=20, padding_top=2, color='#888')
+                    )
+                    exercises_box.add(none_label)
 
         # no exercises logged for workout yet
         else:
@@ -441,7 +441,7 @@ class WorkoutTracker(toga.App):
                     " No exercises logged yet. ",
                     style=Pack(padding_left=20, text_align='center')
                 )
-                exercise_box.add(no_exercise_label)
+            exercises_box.add(no_exercise_label)
 
         # button for workout deletion
         delete_btn = toga.Button(
@@ -459,7 +459,7 @@ class WorkoutTracker(toga.App):
 
         # build whole display
         detail_box.add(header_box)
-        detail_box.add(exercises_list_box)
+        detail_box.add(exercises_box)
         detail_box.add(delete_btn)
         detail_box.add(add_exercise_btn)
 
@@ -546,7 +546,7 @@ class WorkoutTracker(toga.App):
 
 
     # save exercise to workout in db
-    def save_exercise(self, workout_id):
+    def save_exercise(self, workout):
         
         selected = self.exercise_select.value
 
@@ -556,7 +556,7 @@ class WorkoutTracker(toga.App):
 
             if not new_name:
 
-                self.main_window.error.dialog(
+                self.main_window.error_dialog(
                     "Error",
                     "Exercise name cannot be empty."
                 )
@@ -650,7 +650,7 @@ class WorkoutTracker(toga.App):
 
         if reps is None or weight is None:
 
-            self.main_window.error.dialog(
+            self.main_window.error_dialog(
                 "Error",
                 "Reps and weight must be provided."
             )
@@ -688,11 +688,12 @@ class WorkoutTracker(toga.App):
         if confirmed:
 
             self.db.delete_workout(workout['id'])
-            self.show_day_details(workout['date'])
+            workout_date = datetime.strptime(workout['date'], '%Y-%m-%d').date()
+            self.show_day_details(workout_date)
 
 
     # delete exercise from workout confirmation dialog
-    def confirm_delete_exercise(self, workout_exercise_id):
+    def confirm_delete_exercise(self, workout, exercise):
 
         self.main_window.confirm_dialog(
             "Delete Exercise",
@@ -702,7 +703,7 @@ class WorkoutTracker(toga.App):
 
 
     # exercise (from workout) deletion handling depending on final choice
-    def delete_exercise(self, workout_exercise_id, confirmed):
+    def delete_exercise(self, workout, exercise, confirmed):
 
         if confirmed:
 
@@ -713,10 +714,10 @@ class WorkoutTracker(toga.App):
     # chart generator (png bytes)
     def generate_progress_chart(self, data_points) -> bytes:
         
-        dates = [datetime.strptime(d['date'], '%d-%m-%Y') for d in data_points]
-        weights = [d['weight'] for d in data_points]
+        dates = [datetime.strptime(d['date'], '%Y-%m-%d') for d in data_points['data_points']]
+        weights = [d['max_weight'] for d in data_points['data_points']]
 
-        fix, ax = plt.subplots(figsize=(8, 5))
+        fig, ax = plt.subplots(figsize=(8, 5))
         ax.plot(dates, weights, marker='o', linestyle='-', linewidth=2, markersize=6)
 
         ax.set_xlabel('Date')
@@ -724,7 +725,7 @@ class WorkoutTracker(toga.App):
         ax.set_title('Progress Over Time')
         ax.grid(True, alpha=0.3)
 
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
         plt.xticks(rotation=45)
 
         plt.tight_layout()
@@ -778,7 +779,7 @@ class WorkoutTracker(toga.App):
         header_box.add(back_btn)
 
         # charting and stats
-        self.chart_box = toga.Box(style=Pack(direction=COLUMN, padding=10, alignment='center'))^
+        self.chart_box = toga.Box(style=Pack(direction=COLUMN, padding=10, alignment='center'))
         self.stats_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
 
         # build whole statistics display
@@ -795,7 +796,7 @@ class WorkoutTracker(toga.App):
 
 
     # loads and displays progress for selected exercise
-    def load_exercise_progress(self, exercise, exercise_name):
+    def load_exercise_progress(self, exercises, exercise_name):
         
         # fetch exercise id and related stats from db
         exercise_id = next(ex['id'] for ex in exercises if ex['name'] == exercise_name)
