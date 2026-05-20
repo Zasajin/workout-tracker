@@ -60,3 +60,13 @@ var/
 
 # Briefcase log files
 logs/
+
+
+cat >> .gitignore << 'EOF'
+.briefcase/
+*.db
+*.pyc
+__pycache__/
+venv/
+.vscode/
+EOF
