@@ -13,6 +13,65 @@ from toga.style.pack import COLUMN, ROW
 
 from wt25.database import WorkoutDB
 
+# color schemes
+THEMES = {
+
+    'Light': {
+        'prime_background': '#FFFFF',
+        'second_background': '#F5F5F5',
+        'text': '#000000',
+        'primary': '#1976D2',
+        'accent': '#2196F3',
+        'danger': '#D32F2F'
+    },
+
+    'Dark': {
+        'prime_background': '#1E1E1E',
+        'second_background': '#2D2D2D',
+        'text': '#E0E0E0',
+        'primary': '#BB86FC',
+        'accent': '#9575CD',
+        'danger': '#CF6679'
+    },
+
+    'Navy': {
+        'prime_background': '#1A237E',
+        'second_background': '#283593',
+        'text': '#E8EAF6',
+        'primary': '#3F51B5',
+        'accent': '#5C6BC0',
+        'danger': '#EF5350'
+    },
+
+    'Forest': {
+        'prime_background': '#1B5E20',
+        'second_background': '#2E7D32',
+        'text': '#E8F5E9',
+        'primary': '#4CAF50',
+        'accent': '#66BB6A',
+        'danger': '#EF5350'
+    },
+
+    'Sunset': {
+        'prime_background': '#BF360C',
+        'second_background': '#D84315',
+        'text': '#FFF3E0',
+        'primary': '#FF5722',
+        'accent': '#FF7043',
+        'danger': '#F44336'
+    },
+
+    'Plum': {
+        'prime_background': '#4A148C',
+        'second_background': '#6A1B9A',
+        'text': '#F3E5F5',
+        'primary': '#9C27B0',
+        'accent': '#BA68C8',
+        'danger': '#E91E63'
+    }
+
+}
+
 
 class WorkoutTracker(toga.App):
 
@@ -20,6 +79,9 @@ class WorkoutTracker(toga.App):
     def startup(self):
 
         self.db = WorkoutDB("workouts.db")
+        
+        # set default dark theme
+        self.current_theme = self.db.get_setting('theme', 'Dark')
 
         # setting current  day in calendar
         today = datetime.today()
@@ -868,6 +930,22 @@ class WorkoutTracker(toga.App):
         box.add(value_widget)
 
         return box
+
+
+    # TODO: display settings screen with selector
+    def show_settings(self):
+        pass
+
+
+    # TODO: apply selected theme to app
+    def change_theme(self, theme_name):
+        pass
+
+
+    # TODO: helper to select colors from theme
+    def theme(self, key: str) -> str:
+
+        return THEMES[self.current_theme][key]
 
 
 def main():
