@@ -2,6 +2,7 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime
 from typing import Callable, Any, Literal, TypedDict
+import os
 
 class WorkoutDB:
 
@@ -15,6 +16,9 @@ class WorkoutDB:
 
     # establish connection to db
     def _get_connection(self) -> sqlite3.Connection:
+
+        # Debug
+        print(f"DEBUG: Database at: {os.path.abspath(self.db_path)}")
 
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -170,7 +174,8 @@ class WorkoutDB:
             conn.commit()
         
         except sqlite3.IntegrityError:
-
+            
+            conn.rollback()
             cursor.execute('SELECT id FROM exercises WHERE name = ?', (name,))
             exercise_id = cursor.fetchone()[0]
 

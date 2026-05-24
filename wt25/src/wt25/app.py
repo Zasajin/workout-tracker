@@ -530,6 +530,8 @@ class WorkoutTracker(toga.App):
         form_box.add(self.new_exercise_box)
         form_box.add(button_box)
 
+        self.toggle_new_exercise_input(self.exercise_select)
+
         self.main_window.content = form_box
 
 
@@ -538,7 +540,9 @@ class WorkoutTracker(toga.App):
         
         if widget.value == "--Add new exercise--":
 
-            self.new_exercise_box.add(self.new_exercise_input)
+            if self.new_exercise_input not in self.new_exercise_box.children:
+
+                self.new_exercise_box.add(self.new_exercise_input)
 
         else:
 
@@ -748,6 +752,8 @@ class WorkoutTracker(toga.App):
 
         # header row with exercise dropdown and back button
         header_box = toga.Box(style=Pack(direction=ROW, padding=10))
+        # Need to add header here, otherwise it gets pushed down on the screen
+        progress_box.add(header_box)
 
         exercises = self.db.all_done_exercises()
 
@@ -757,16 +763,16 @@ class WorkoutTracker(toga.App):
                 "No exercises logged yet.",
                 style=Pack(padding=10)
             ))
-            self.main_window.content = progress_box
 
-            return
+        else:
 
-        # dropdown exercise selector
-        exercise_selector = toga.Selection(
-            items=[ex['name'] for ex in exercises],
-            on_change=lambda w: self.load_exercise_progress(exercises, w.value),
-            style=Pack(flex=1, padding=5)
-        )
+            # dropdown exercise selector
+            exercise_selector = toga.Selection(
+                items=[ex['name'] for ex in exercises],
+                on_change=lambda w: self.load_exercise_progress(exercises, w.value),
+                style=Pack(flex=1, padding=5)
+            )
+            header_box.add(exercise_selector)
 
         back_btn = toga.Button(
             "Back",
@@ -775,7 +781,6 @@ class WorkoutTracker(toga.App):
         )
 
         # build header
-        header_box.add(exercise_selector)
         header_box.add(back_btn)
 
         # charting and stats
@@ -783,7 +788,6 @@ class WorkoutTracker(toga.App):
         self.stats_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
 
         # build whole statistics display
-        progress_box.add(header_box)
         progress_box.add(self.chart_box)
         progress_box.add(self.stats_box)
 
