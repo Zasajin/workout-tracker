@@ -19,7 +19,8 @@ class WorkoutTracker(toga.App):
     # construct and show the Toga application
     def startup(self):
 
-        self.db = WorkoutDB("workouts.db")
+        db_path = self.paths.data / 'workouts.db'
+        self.db = WorkoutDB(db_path)
 
         # setting current  day in calendar
         today = datetime.today()

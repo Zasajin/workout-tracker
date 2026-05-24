@@ -8,15 +8,18 @@ class WorkoutDB:
 
 
     # initialize database
-    def __init__(self, db_path: str = "workouts.db"):
+    def __init__(self, db_path: str):
 
-        self.db_path = db_path
+        self.db_path = str(db_path)
         self._create_tables()
 
 
     # establish connection to db
     def _get_connection(self) -> sqlite3.Connection:
 
+        # debug
+        print(f"DEBUG: Database at: {os.path.abspath(self.db_path)}")
+        
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
 
