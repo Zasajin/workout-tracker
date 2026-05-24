@@ -682,7 +682,7 @@ class WorkoutTracker(toga.App):
         self.main_window.confirm_dialog(
             "Delete Workout",
             f"Delete '{workout['name']}' ('{workout['date']}') and all its exercises? This action cannot be undone.",
-            on_result=lambda result: self.delete_workout(workout, result)
+            on_result=lambda dialog, result: self.delete_workout(workout, result)
         )
 
 
@@ -702,7 +702,7 @@ class WorkoutTracker(toga.App):
         self.main_window.confirm_dialog(
             "Delete Exercise",
             f"Delete this exercise from the workout?",
-            on_result=lambda result: self.delete_exercise(workout, exercise, result)
+            on_result=lambda dialog, result: self.delete_exercise(workout, exercise, result)
         )
 
 
