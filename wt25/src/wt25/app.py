@@ -98,7 +98,7 @@ class WorkoutTracker(toga.App):
 
         for week in cal:
 
-            week_box = toga.Box(style=Pack(direction=ROW, padding=2))
+            week_box = toga.Box(style=Pack(direction=ROW, padding=2, alignment='center'))
 
             first_day = next((d for d in week if d != 0), 1)
             week_date = date(self.current_year, self.current_month, first_day)
@@ -271,12 +271,24 @@ class WorkoutTracker(toga.App):
     # uses build_calendar for calendar grid
     def show_calendar_view(self):
 
-        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10, alignment='center'))
 
         nav_box = self.build_navigation()
 
-        self.calendar_box = toga.Box(style=Pack(direction=COLUMN, padding=5))
+        # Fixed width container for the calender grid
+        calendar_container = toga.Box(style=Pack(
+            direction=COLUMN,
+            width=420,
+            height=400,
+            padding=5
+        ))
+
+        self.calendar_box = toga.Box(style=Pack(direction=COLUMN))
         self.build_calendar()
+        calendar_container.add(self.calendar_box)
+
+        # Spacer to push progress button to the bottom
+        spacer = toga.Box(style=Pack(flex=1))
 
         progress_btn = toga.Button(
             "Progress Charts",
@@ -285,7 +297,8 @@ class WorkoutTracker(toga.App):
         )
 
         main_box.add(nav_box)
-        main_box.add(self.calendar_box)
+        main_box.add(calendar_container)
+        main_box.add(spacer)
         main_box.add(progress_btn)
 
         self.main_window.content = main_box
