@@ -2,11 +2,14 @@
 Tracker for workouts and exercise progressions
 """
 
+import calendar
+from datetime import datetime, date, timedelta
+import io
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
-from datetime import datetime, date
-import calendar
 
 from wt25.database import WorkoutDB
 
@@ -23,20 +26,9 @@ class WorkoutTracker(toga.App):
         self.current_month = today.month
         self.current_year = today.year
 
-        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
-
-        # month navigation
-        nav_box = self.build_navigation()
-        main_box.add(nav_box)
-
-        # calendar grid
-        self.calendar_box = toga.Box(style=Pack(direction=COLUMN, padding=5))
-        self.build_calendar()
-        main_box.add(self.calendar_box)
-
         # main window
         self.main_window = toga.MainWindow(title=self.formal_name)
-        self.main_window.content = main_box
+        self.show_calendar_view()
         self.main_window.show()
 
 
@@ -143,6 +135,7 @@ class WorkoutTracker(toga.App):
             self.calendar_box.add(week_box)
 
 
+    # scroll to the previous month and update calendar
     def prev_month(self, widget):
 
         if self.current_month == 1:
@@ -157,6 +150,7 @@ class WorkoutTracker(toga.App):
         self.update_calendar()
 
 
+    # scroll to the next month and update calendar
     def next_month(self, widget):
 
         if self.current_month == 12:
@@ -171,6 +165,7 @@ class WorkoutTracker(toga.App):
         self.update_calendar()
 
 
+    # update the calendar to show the right month
     def update_calendar(self):
 
         month_name = calendar.month_name[self.current_month]
@@ -178,13 +173,701 @@ class WorkoutTracker(toga.App):
         self.build_calendar()
 
 
+    # handles display of details of a clicked day in the calendar
     def day_clicked(self, day):
 
         clicked_date = date(self.current_year, self.current_month, day)
-        self.main_window.info_dialog(
-            "Day Selected",
-            f"You clicked on {clicked_date.strftime('%Y-%m-%d')}"
+        self.show_day_details(clicked_date)
+
+    
+    # displays the workout detils for a specific selected day
+    def show_day_details(self, selected_date):
+
+        self.selected_date = selected_date
+
+        # main container for details view
+        detail_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+    
+        # box for navigation tools
+        header_box = toga.Box(style=Pack(direction=ROW, padding=5))
+
+        # button to return to calendar grid
+        back_btn = toga.Button(
+            "Back",
+            on_press=lambda widget: self.show_calendar_view(),
+            style=Pack(width=80, padding=5)
         )
+
+        # label displaying selected day
+        date_label = toga.Label(
+            selected_date.strftime("%A, %B %d, %Y"),
+            style=Pack(flex=1, text_align='center', font_size=16, padding=5)
+        )
+
+        prev_day_btn = toga.Button(
+            "<",
+            on_press=lambda widget: self.show_day_details(selected_date - timedelta(days=1)),
+            style=Pack(width=50, padding=5)
+        )
+
+        next_day_btn = toga.Button(
+            ">",
+            on_press=lambda widget: self.show_day_details(selected_date + timedelta(days=1)),
+            style=Pack(width=50, padding=5)
+        )
+
+        # building header
+        header_box.add(back_btn)
+        header_box.add(prev_day_btn)
+        header_box.add(date_label)
+        header_box.add(next_day_btn)
+
+        # fetch workouts of selected day from db
+        workouts = self.db.get_workouts_by_date(selected_date.strftime("%Y-%m-%d"))
+        # box to list workouts of the day
+        workout_list_box = toga.Box(style=Pack(direction=COLUMN, padding=5, flex=1))
+
+        if workouts:
+
+            for workout in workouts:
+
+                workout_btn = toga.Button(
+                    workout['name'],
+                    on_press=lambda widget, w=workout: self.show_workout_detail(w),
+                    style=Pack(width=300, padding=5)
+                )
+
+                # add button for workout into list box
+                # enables concise overview and possibility to
+                # expand to see details
+                workout_list_box.add(workout_btn)
+
+        else:
+
+            none_label = toga.Label(
+                "No workouts logged for this day yet.",
+                style=Pack(padding=20, text_align='center')
+            )
+
+            # display message if no workouts logged for selected day
+            workout_list_box.add(none_label)
+
+        # button to add workout for selected day
+        create_workout_btn = toga.Button(
+            "Add Workout",
+            on_press=lambda widget: self.create_workout(selected_date)
+        )
+
+        # building whole scene
+        detail_box.add(header_box)
+        detail_box.add(workout_list_box)
+        detail_box.add(create_workout_btn)
+
+        self.main_window.content = detail_box
+
+
+    # builds and displays calendar view
+    # uses build_navigation for nav buttons
+    # uses build_calendar for calendar grid
+    def show_calendar_view(self):
+
+        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        nav_box = self.build_navigation()
+
+        self.calendar_box = toga.Box(style=Pack(direction=COLUMN, padding=5))
+        self.build_calendar()
+
+        progress_btn = toga.Button(
+            "Progress Charts",
+            on_press=lambda w: self.show_progress(),
+            style=Pack(alignment='center', padding=10)
+        )
+
+        main_box.add(nav_box)
+        main_box.add(self.calendar_box)
+        main_box.add(progress_btn)
+
+        self.main_window.content = main_box
+
+
+    # workout creation form and logic for selected day 
+    def create_workout(self, workout_date):
+
+        # main display box
+        form_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        header_label = toga.Label(
+            f"New Workout - {workout_date.strftime('%d, %m, %Y')}",
+            style=Pack(padding=10, font_size=16, font_weight='bold', text_align='center')
+        )
+
+        # input and display of workout name
+        name_label = toga.Label("Workout Name:", style=Pack(padding=5))
+        self.name_input = toga.TextInput(
+            placeholder="e.g. Leg Day",
+            style=Pack(padding=5, width=300)
+        )
+
+        # buttons to save/cancel workout creation
+        button_box = toga.Box(style=Pack(direction=ROW, padding=10))
+        cancel_btn = toga.Button(
+            "Cancel",
+            on_press=lambda widget: self.show_day_details(workout_date),
+            style=Pack(padding=5, width=100)
+        )
+        save_btn = toga.Button(
+            "Save",
+            on_press=lambda widget: self.save_workout(workout_date),
+            style=Pack(padding=5, width=100)
+        )
+        # build button box
+        button_box.add(cancel_btn)
+        button_box.add(save_btn)
+
+        # build whole display
+        form_box.add(header_label)
+        form_box.add(name_label)
+        form_box.add(self.name_input)
+        form_box.add(button_box)
+
+        self.main_window.content = form_box
+
+    
+    # saves workout to db
+    def save_workout(self, workout_date):
+
+        name = self.name_input.value.strip()
+
+        if not name:
+
+            self.main_window.error_dialog(
+                "Error",
+                "Workout name cannot be empty."
+            )
+
+            return
+
+        self.db.add_workout(
+            name = name,
+            date = workout_date.strftime("%Y-%m-%d")
+        )
+
+        self.show_day_details(workout_date)
+
+
+    # expands workout details when a workout button is clicked
+    # shows button to add exercises to workout
+    def show_workout_detail(self, workout):
+        
+        # workout details display
+        detail_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        # header with workout name, date and return button
+        header_box = toga.Box(style=Pack(direction=ROW, padding=5))
+
+        # return
+        back_btn = toga.Button(
+            "Back",
+            on_press=lambda widget: self.show_day_details(self.selected_date),
+            style=Pack(width=80, padding=5)
+        )
+
+        # workout name and date
+        workout_label = toga.Label(
+            f"{workout['name']} - {workout['date']}",
+            style=Pack(flex=1, text_align='center', font_size=16,
+            font_weight='bold', padding=5)
+        )
+
+        # build header
+        header_box.add(back_btn)
+        header_box.add(workout_label)
+
+        # fetch exercises of workout
+        exercises = self.db.get_workout_exercises(workout['id'])
+
+        # display exercises and sets of workout
+        exercises_box = toga.Box(style=Pack(direction=COLUMN, padding=10, flex=1))
+
+        if exercises:
+
+            for exercise in exercises:
+
+                # row for each exercise with name and delete button
+                exercise_row = toga.Box(style=Pack(direction=ROW, padding=5))
+
+                exercise_label = toga.Label(
+                    exercise['exercise_name'],
+                    style=Pack(padding=5, font_size=14, font_weight='bold')
+                )
+
+                delete_exercise_btn = toga.Button(
+                    "X",
+                    on_press=lambda w, ex=exercise: self.confirm_delete_exercise(workout, ex),
+                    style=Pack(width=40, background_color='#d32f2f')
+                )
+
+                # build exercise row
+                exercise_row.add(exercise_label)
+                exercise_row.add(delete_exercise_btn)
+
+                # add exercise row per exercise to exercises box
+                exercises_box.add(exercise_row)
+
+                if exercise['sets']:
+
+                    for set_data in exercise['sets']:
+
+                        set_label = toga.Label(
+                            f" {set_data['reps']} reps x {set_data['weight']} kg",
+                            style=Pack(padding_left=20, padding_top=2)
+                        )
+                        exercises_box.add(set_label)
+
+                # no sets logged for exercise yet
+                else:
+
+                    none_label = toga.Label(
+                        " No sets logged yet. ",
+                        style=Pack(padding_left=20, padding_top=2, color='#888')
+                    )
+                    exercises_box.add(none_label)
+
+        # no exercises logged for workout yet
+        else:
+
+            no_exercise_label = toga.Label(
+                    " No exercises logged yet. ",
+                    style=Pack(padding_left=20, text_align='center')
+                )
+            exercises_box.add(no_exercise_label)
+
+        # button for workout deletion
+        delete_btn = toga.Button(
+            "Delete Workout",
+            on_press=lambda widget: self.confirm_delete_workout(workout),
+            style=Pack(padding=10, background_color='#d32f2f')
+        )
+
+        # button to add exercise to workout
+        add_exercise_btn = toga.Button(
+            "Add Exercise",
+            on_press=lambda widget: self.add_exercise(workout),
+             style=Pack(padding=10)
+        )
+
+        # build whole display
+        detail_box.add(header_box)
+        detail_box.add(exercises_box)
+        detail_box.add(delete_btn)
+        detail_box.add(add_exercise_btn)
+
+        self.main_window.content = detail_box
+
+
+    # adding exercise to workout
+    def add_exercise(self, workout):
+        
+        # main display
+        form_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        # header with selected workout name
+        header_label = toga.Label(
+            f"Add Exercise to {workout['name']}",
+            style=Pack(padding=10, font_size=16, font_weight='bold')
+        )
+
+        # input to select existing or enter new exercise
+        exercise_label = toga.Label(
+            "Select Exercise:",
+            style=Pack(padding=5)
+        )
+
+        # fetch existing exercises from db to display
+        existing_exercises = self.db.get_all_exercises()
+
+        exercise_items = [ex['name'] for ex in existing_exercises]
+        exercise_items.append("--Add new exercise--")
+
+        # display for existing exercises
+        self.exercise_select = toga.Selection(
+            items=exercise_items,
+            on_change=lambda widget: self.toggle_new_exercise_input(widget),
+            style=Pack(padding=5, width=300)
+        )
+
+        # input window for new exercise
+        self.new_exercise_input = toga.TextInput(
+            placeholder="Enter new exercise name",
+            style=Pack(padding=5, width=300)
+        )
+        self.new_exercise_box = toga.Box(style=Pack(direction=COLUMN))
+
+        # box for cancel and save buttons
+        button_box = toga.Box(style=Pack(direction=ROW, padding=10))
+
+        cancel_btn = toga.Button(
+            "Cancel",
+            on_press=lambda widget: self.show_workout_detail(workout),
+            style=Pack(padding=5, width=100)
+        )
+
+        save_btn = toga.Button(
+            "Save",
+            on_press=lambda widget: self.save_exercise(workout),
+            style=Pack(padding=5, width=100)
+        )
+
+        # build button box
+        button_box.add(cancel_btn)
+        button_box.add(save_btn)
+
+        # build main display
+        form_box.add(header_label)
+        form_box.add(exercise_label)
+        form_box.add(self.exercise_select)
+        form_box.add(self.new_exercise_box)
+        form_box.add(button_box)
+
+        self.toggle_new_exercise_input(self.exercise_select)
+
+        self.main_window.content = form_box
+
+
+    # toggle input window for new exercises
+    def toggle_new_exercise_input(self, widget):
+        
+        if widget.value == "--Add new exercise--":
+
+            if self.new_exercise_input not in self.new_exercise_box.children:
+
+                self.new_exercise_box.add(self.new_exercise_input)
+
+        else:
+
+            self.new_exercise_box.clear()
+
+
+    # save exercise to workout in db
+    def save_exercise(self, workout):
+        
+        selected = self.exercise_select.value
+
+        if selected == "--Add new exercise--":
+
+            new_name = self.new_exercise_input.value.strip()
+
+            if not new_name:
+
+                self.main_window.error_dialog(
+                    "Error",
+                    "Exercise name cannot be empty."
+                )
+
+                return
+
+            exercise_id = self.db.add_new_exercise(new_name)
+
+        else:
+
+            all_exercises = self.db.get_all_exercises()
+            exercise_id = next(ex['id'] for ex in all_exercises if ex['name'] == selected)
+
+        workout_exercise_id = self.db.link_exercise_to_workout(workout['id'], exercise_id)
+
+        self.add_sets(workout, workout_exercise_id)
+
+
+    # add set to exercise form/logic
+    def add_sets(self, workout, workout_exercise_id):
+        
+        # main display box
+        form_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        header_label = toga.Label(
+            "Add sets",
+            style=Pack(padding=10, font_size=16, font_weight='bold')
+        )
+
+        # reps section for a set
+        reps_label = toga.Label("Reps:", style=Pack(padding=5))
+
+        self.reps_input = toga.NumberInput(
+            min=0,
+            max=999,
+            step=1,
+            style=Pack(padding=5, width=300)
+        )
+
+        # weight section for a set
+        weight_label = toga.Label("Weight (kg):", style=Pack(padding=5))
+
+        self.weight_input = toga.NumberInput(
+            min=0,
+            max=999,
+            step=0.125,
+            style=Pack(padding=5, width=300)
+        )
+
+        # display element for adding a set/finishing and returning to workout details
+        button_box = toga.Box(style=Pack(direction=ROW, padding=10))
+
+        # finish adding sets and return to workout details
+        done_btn = toga.Button(
+            "Done",
+            on_press=lambda widget: self.show_workout_detail(workout),
+            style=Pack(padding=5, width=100)
+        )
+
+        # add a set
+        add_set_btn = toga.Button(
+            "Add set",
+            on_press=lambda widget: self.save_set(workout, workout_exercise_id),
+            style=Pack(padding=5, width=100)
+        )
+
+        # build button box
+        button_box.add(done_btn)
+        button_box.add(add_set_btn)
+            
+        # added sets feedback
+        self.sets_list_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        # build main display
+        form_box.add(header_label)
+        form_box.add(reps_label)
+        form_box.add(self.reps_input)
+        form_box.add(weight_label)
+        form_box.add(self.weight_input)
+        form_box.add(button_box)
+        form_box.add(self.sets_list_box)
+
+        self.main_window.content = form_box
+
+
+    # saves a set to db, allows multiple additions
+    def save_set(self, workout, workout_exercise_id):
+
+        reps = self.reps_input.value
+        weight = self.weight_input.value
+
+        if reps is None or weight is None:
+
+            self.main_window.error_dialog(
+                "Error",
+                "Reps and weight must be provided."
+            )
+            
+            return
+
+        # save to db
+        self.db.add_set(workout_exercise_id, int(reps), float(weight))
+
+        # feedback for added set
+        set_label = toga.Label(
+            f"Added {int(reps)} reps x {float(weight)} kg",
+            style=Pack(padding=5)
+        )
+        self.sets_list_box.add(set_label)
+
+        # reset inputs for next set
+        self.reps_input.value = None
+        self.weight_input.value = None
+
+
+    # delete workout confirmation dialog
+    def confirm_delete_workout(self, workout):
+
+        self.main_window.confirm_dialog(
+            "Delete Workout",
+            f"Delete '{workout['name']}' ('{workout['date']}') and all its exercises? This action cannot be undone.",
+            on_result=lambda dialog, result: self.delete_workout(workout, result)
+        )
+
+
+    # workout deletion handling depending of final choice
+    def delete_workout(self, workout, confirmed):
+
+        if confirmed:
+
+            self.db.delete_workout(workout['id'])
+            workout_date = datetime.strptime(workout['date'], '%Y-%m-%d').date()
+            self.show_day_details(workout_date)
+
+
+    # delete exercise from workout confirmation dialog
+    def confirm_delete_exercise(self, workout, exercise):
+
+        self.main_window.confirm_dialog(
+            "Delete Exercise",
+            f"Delete this exercise from the workout?",
+            on_result=lambda dialog, result: self.delete_exercise(workout, exercise, result)
+        )
+
+
+    # exercise (from workout) deletion handling depending on final choice
+    def delete_exercise(self, workout, exercise, confirmed):
+
+        if confirmed:
+
+            self.db.del_linked_exercise(exercise['workout_exercise_id'])
+            self.show_workout_detail(workout)
+
+
+    # chart generator (png bytes)
+    def generate_progress_chart(self, data_points) -> bytes:
+        
+        dates = [datetime.strptime(d['date'], '%Y-%m-%d') for d in data_points['data_points']]
+        weights = [d['max_weight'] for d in data_points['data_points']]
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(dates, weights, marker='o', linestyle='-', linewidth=2, markersize=6)
+
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Weight (kg)')
+        ax.set_title('Progress Over Time')
+        ax.grid(True, alpha=0.3)
+
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+        plt.xticks(rotation=45)
+
+        plt.tight_layout()
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', dpi=100)
+        buf.seek(0)
+        chart_bytes = buf.read()
+        buf.close()
+        plt.close(fig)
+
+        return chart_bytes
+
+    
+    # progress chart display
+    def show_progress(self):
+        
+        # main display box
+        progress_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        # header row with exercise dropdown and back button
+        header_box = toga.Box(style=Pack(direction=ROW, padding=10))
+        # Need to add header here, otherwise it gets pushed down on the screen
+        progress_box.add(header_box)
+
+        exercises = self.db.all_done_exercises()
+
+        if not exercises:
+
+            progress_box.add(toga.Label(
+                "No exercises logged yet.",
+                style=Pack(padding=10)
+            ))
+
+        else:
+
+            # dropdown exercise selector
+            exercise_selector = toga.Selection(
+                items=[ex['name'] for ex in exercises],
+                on_change=lambda w: self.load_exercise_progress(exercises, w.value),
+                style=Pack(flex=1, padding=5)
+            )
+            header_box.add(exercise_selector)
+
+        back_btn = toga.Button(
+            "Back",
+            on_press=lambda w: self.show_calendar_view(),
+            style=Pack(width=80, padding=5)
+        )
+
+        # build header
+        header_box.add(back_btn)
+
+        # charting and stats
+        self.chart_box = toga.Box(style=Pack(direction=COLUMN, padding=10, alignment='center'))
+        self.stats_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+
+        # build whole statistics display
+        progress_box.add(self.chart_box)
+        progress_box.add(self.stats_box)
+
+        self.main_window.content = progress_box
+
+        # default loadout
+        if exercises:
+
+            self.load_exercise_progress(exercises, exercises[0]['name'])
+
+
+    # loads and displays progress for selected exercise
+    def load_exercise_progress(self, exercises, exercise_name):
+        
+        # fetch exercise id and related stats from db
+        exercise_id = next(ex['id'] for ex in exercises if ex['name'] == exercise_name)
+        progress_data = self.db.get_exercise_stats(exercise_id)
+
+        if not progress_data:
+
+            self.chart_box.clear()
+            self.stats_box.clear()
+            self.chart_box.add(toga.Label("No data for this exercise.",
+            style=Pack(padding=10)))
+
+            return
+
+        # clear for new data to display
+        self.chart_box.clear()
+        self.stats_box.clear()
+
+        # bytes for chart
+        chart_bytes = self.generate_progress_chart(progress_data)
+
+        # for chart byte writing to temporary file
+        import tempfile
+
+        # write chart bytes to temporary file to load into Toga ImageView
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as f:
+
+            f.write(chart_bytes)
+            chart_path = f.name
+
+        # form graph from bytes
+        chart_image = toga.ImageView(
+            toga.Image(chart_path),
+            style=Pack(width=600, height=400, padding=10)
+        )
+
+        # stats dict
+        stats = progress_data['stats']
+
+        # 2x2 grid for stats display
+        row1 = toga.Box(style=Pack(direction=ROW, padding=5))
+        row2 = toga.Box(style=Pack(direction=ROW, padding=5))
+
+        # feed data for 2x2 grid
+        row1.add(self._stat_box("Start Weight", f"{stats['start_weight']:.3f} kg"))
+        row1.add(self._stat_box("Personal Best", f"{stats['personal_best']:.3f} kg"))
+        row2.add(self._stat_box("Last Weight", f"{stats['last_weight']:.3f} kg"))
+        row2.add(self._stat_box("Average Weight", f"{stats['average_weight']:.3f} kg"))
+
+        # build graph and 2x2 grid display
+        self.chart_box.add(chart_image)
+        self.stats_box.add(row1)
+        self.stats_box.add(row2)   
+
+    
+    # helper for stat box creation
+    def _stat_box(self, label, value):
+        
+        box = toga.Box(style=Pack(direction=COLUMN, padding=10, flex=1, alignment='center'))
+
+        label_widget = toga.Label(label, style=Pack(font_size=10, padding=5))
+        value_widget = toga.Label(value, style=Pack(font_size=16, padding=5, font_weight='bold'))
+
+        box.add(label_widget)
+        box.add(value_widget)
+
+        return box
 
 
 def main():
