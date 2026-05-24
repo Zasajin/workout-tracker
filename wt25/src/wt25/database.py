@@ -71,9 +71,16 @@ class WorkoutDB:
             )
         ''')
 
+        # settings table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+                )
+            ''')
+
         conn.commit()
         conn.close()
-
 
 # -- Workout Methods --
 
@@ -338,3 +345,32 @@ class WorkoutDB:
         'stats': stats
 
         }
+
+# -- Settings Methods --
+
+    # retrieve a setting value by key
+    def get_setting(self, key: str, default=None) -> str:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT value FROM settings WHERE key = ?", (key,))
+
+        row = cursor.fetchone()
+        conn.close()
+
+        return row['value'] if row else default
+
+    # sets new setting values to db
+    def set_setting(self, key: str, value: str) -> None:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO settings (key, value)
+        VALUES (?, ?)
+        """, (key, value))
+        
+        conn.commit()
+        conn.close()
