@@ -103,30 +103,54 @@ class WorkoutTracker(toga.App):
         prev_btn = toga.Button(
             "<",
             on_press=self.prev_month,
-            style=Pack(width=50, padding=5)
+            style=Pack(
+                width=50,
+                padding=5,
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
         
         # Current month/year label
         month_name = calendar.month_name[self.current_month]
         self.month_label = toga.Label(
             f"{month_name} {self.current_year}",
-            style=Pack(flex=1, text_align='center', font_size=16, padding=5)
+            style=Pack(
+                flex=1,
+                text_align='center',
+                font_size=16,
+                padding=5,
+                color=self.theme('text')
+            )
         )
         
         # Next month button
         next_btn = toga.Button(
             ">",
             on_press=self.next_month,
-            style=Pack(width=50, padding=5)
+            style=Pack(
+                width=50,
+                padding=5,
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
 
         settings_btn = toga.Button(
             '\u2699\uFE0F',
             on_press=lambda w: self.show_settings(),
-            style=Pack(width=40, height=40)
+            style=Pack(
+                width=40,
+                height=40,
+                background_color=self.theme('accent'),
+                color=self.theme('text'))
         )
         
-        nav_box = toga.Box(style=Pack(direction=ROW, padding=5))
+        nav_box = toga.Box(style=Pack(
+            direction=ROW,
+            padding=5,
+            background_color=self.theme('second_background')
+        ))
         nav_box.add(prev_btn)
         nav_box.add(self.month_label)
         nav_box.add(next_btn)
@@ -153,14 +177,32 @@ class WorkoutTracker(toga.App):
                 workout_dates.add(workout_date.day)
 
         # header (weekdays)
-        header_box = toga.Box(style=Pack(direction=ROW, padding=2))
-        header_box.add(toga.Label("WK", style=Pack(width=40, padding=2, font_weight='bold')))
+        header_box = toga.Box(style=Pack(
+            direction=ROW,
+            padding=2,
+            background_color=self.theme('second_background')
+            ))
+        header_box.add(toga.Label(
+            "WK",
+            style=Pack(
+                width=40,
+                padding=2,
+                font_weight='bold',
+                color=self.theme('text')
+            )
+        ))
 
         for day_name in ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]:
 
             header_box.add(toga.Label(
                 day_name,
-                style=Pack(width=50, padding=2, text_align='center', font_weight='bold')
+                style=Pack(
+                    width=50,
+                    padding=2,
+                    text_align='center',
+                    font_weight='bold',
+                    color=self.theme('text')
+                )
             ))
         self.calendar_box.add(header_box)
 
@@ -176,7 +218,12 @@ class WorkoutTracker(toga.App):
 
             week_box.add(toga.Label(
                 str(week_number),
-                style=Pack(width=40, padding=2, text_align='center', color='#666')
+                style=Pack(
+                    width=40,
+                    padding=2,
+                    text_align='center',
+                    color=self.theme('text')
+                )
             ))
 
             for day in week:
@@ -195,8 +242,8 @@ class WorkoutTracker(toga.App):
                             width=50,
                             height=50,
                             padding=2,
-                            background_color='#4caf50' if has_workout else '#f0f0f0',
-                            color='white' if has_workout else 'black',
+                            background_color=self.theme('primary') if has_workout else self.theme('second_background'),
+                            color=self.theme('text'),
                         )
                     )
                     
@@ -256,34 +303,63 @@ class WorkoutTracker(toga.App):
         self.selected_date = selected_date
 
         # main container for details view
-        detail_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+        detail_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            background_color=self.theme('prime_background')
+        ))
     
         # box for navigation tools
-        header_box = toga.Box(style=Pack(direction=ROW, padding=5))
+        header_box = toga.Box(style=Pack(
+            direction=ROW,
+            padding=5,
+            background_color=self.theme('second_background')
+        ))
 
         # button to return to calendar grid
         back_btn = toga.Button(
             "Back",
             on_press=lambda widget: self.show_calendar_view(),
-            style=Pack(width=80, padding=5)
+            style=Pack(
+                width=80,
+                padding=5,
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
 
         # label displaying selected day
         date_label = toga.Label(
             selected_date.strftime("%A, %B %d, %Y"),
-            style=Pack(flex=1, text_align='center', font_size=16, padding=5)
+            style=Pack(
+                flex=1,
+                text_align='center',
+                font_size=16,
+                padding=5,
+                color=self.theme('text')
+            )
         )
 
         prev_day_btn = toga.Button(
             "<",
             on_press=lambda widget: self.show_day_details(selected_date - timedelta(days=1)),
-            style=Pack(width=50, padding=5)
+            style=Pack(
+                width=50,
+                padding=5,
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
 
         next_day_btn = toga.Button(
             ">",
             on_press=lambda widget: self.show_day_details(selected_date + timedelta(days=1)),
-            style=Pack(width=50, padding=5)
+            style=Pack(
+                width=50,
+                padding=5,
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
 
         # building header
@@ -295,7 +371,12 @@ class WorkoutTracker(toga.App):
         # fetch workouts of selected day from db
         workouts = self.db.get_workouts_by_date(selected_date.strftime("%Y-%m-%d"))
         # box to list workouts of the day
-        workout_list_box = toga.Box(style=Pack(direction=COLUMN, padding=5, flex=1))
+        workout_list_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=5,
+            flex=1,
+            background_color=self.theme('second_background')
+        ))
 
         if workouts:
 
@@ -304,7 +385,12 @@ class WorkoutTracker(toga.App):
                 workout_btn = toga.Button(
                     workout['name'],
                     on_press=lambda widget, w=workout: self.show_workout_detail(w),
-                    style=Pack(width=300, padding=5)
+                    style=Pack(
+                        width=300,
+                        padding=5,
+                        background_color=self.theme('accent'),
+                        color=self.theme('text')
+                    )
                 )
 
                 # add button for workout into list box
@@ -316,7 +402,11 @@ class WorkoutTracker(toga.App):
 
             none_label = toga.Label(
                 "No workouts logged for this day yet.",
-                style=Pack(padding=20, text_align='center')
+                style=Pack(
+                    padding=20,
+                    text_align='center',
+                    color=self.theme('text')
+                )
             )
 
             # display message if no workouts logged for selected day
@@ -325,7 +415,11 @@ class WorkoutTracker(toga.App):
         # button to add workout for selected day
         create_workout_btn = toga.Button(
             "Add Workout",
-            on_press=lambda widget: self.create_workout(selected_date)
+            on_press=lambda widget: self.create_workout(selected_date),
+            style=Pack(
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
 
         # building whole scene
@@ -341,7 +435,12 @@ class WorkoutTracker(toga.App):
     # uses build_calendar for calendar grid
     def show_calendar_view(self):
 
-        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10, alignment='center'))
+        main_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            alignment='center',
+            background_color=self.theme('prime_background')
+        ))
 
         nav_box = self.build_navigation()
 
@@ -350,7 +449,8 @@ class WorkoutTracker(toga.App):
             direction=COLUMN,
             width=420,
             height=400,
-            padding=5
+            padding=5,
+            background_color=self.theme('second_background')           
         ))
 
         self.calendar_box = toga.Box(style=Pack(direction=COLUMN))
@@ -363,7 +463,12 @@ class WorkoutTracker(toga.App):
         progress_btn = toga.Button(
             "Progress Charts",
             on_press=lambda w: self.show_progress(),
-            style=Pack(alignment='center', padding=10)
+            style=Pack(
+                alignment='center',
+                padding=10,
+                background_color=self.theme('primeary'),
+                color=self.theme('text')
+            )
         )
 
         main_box.add(nav_box)
@@ -378,18 +483,33 @@ class WorkoutTracker(toga.App):
     def create_workout(self, workout_date):
 
         # main display box
-        form_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+        form_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            background_color=self.theme('prime_background')
+        ))
 
         header_label = toga.Label(
             f"New Workout - {workout_date.strftime('%d, %m, %Y')}",
-            style=Pack(padding=10, font_size=16, font_weight='bold', text_align='center')
+            style=Pack(
+                padding=10,
+                font_size=16,
+                font_weight='bold',
+                text_align='center',
+                color=self.theme('text')
+            )
         )
 
         # input and display of workout name
         name_label = toga.Label("Workout Name:", style=Pack(padding=5))
         self.name_input = toga.TextInput(
             placeholder="e.g. Leg Day",
-            style=Pack(padding=5, width=300)
+            style=Pack(
+                padding=5,
+                width=300,
+                background_color=self.theme('second_background'),
+                color=self.theme('text')
+            )
         )
 
         # buttons to save/cancel workout creation
@@ -397,12 +517,22 @@ class WorkoutTracker(toga.App):
         cancel_btn = toga.Button(
             "Cancel",
             on_press=lambda widget: self.show_day_details(workout_date),
-            style=Pack(padding=5, width=100)
+            style=Pack(
+                padding=5,
+                width=100,
+                background_color=self.theme('danger'),
+                color=self.theme('text')
+            )
         )
         save_btn = toga.Button(
             "Save",
             on_press=lambda widget: self.save_workout(workout_date),
-            style=Pack(padding=5, width=100)
+            style=Pack(
+                padding=5,
+                width=100,
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
         # build button box
         button_box.add(cancel_btn)
@@ -444,23 +574,42 @@ class WorkoutTracker(toga.App):
     def show_workout_detail(self, workout):
         
         # workout details display
-        detail_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+        detail_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            background_color=self.theme('prime_background')
+        ))
 
         # header with workout name, date and return button
-        header_box = toga.Box(style=Pack(direction=ROW, padding=5))
+        header_box = toga.Box(style=Pack(
+            direction=ROW,
+            padding=5,
+            background_color=self.theme('second_background')
+        ))
 
         # return
         back_btn = toga.Button(
             "Back",
             on_press=lambda widget: self.show_day_details(self.selected_date),
-            style=Pack(width=80, padding=5)
+            style=Pack(
+                width=80,
+                padding=5,
+                background_color=self.theme('primary')
+                color=self.theme('text')
+            )
         )
 
         # workout name and date
         workout_label = toga.Label(
             f"{workout['name']} - {workout['date']}",
-            style=Pack(flex=1, text_align='center', font_size=16,
-            font_weight='bold', padding=5)
+            style=Pack(
+                flex=1,
+                text_align='center',
+                font_size=16,
+                font_weight='bold',
+                padding=5,
+                color=self.theme('text')
+            )
         )
 
         # build header
@@ -471,7 +620,12 @@ class WorkoutTracker(toga.App):
         exercises = self.db.get_workout_exercises(workout['id'])
 
         # display exercises and sets of workout
-        exercises_box = toga.Box(style=Pack(direction=COLUMN, padding=10, flex=1))
+        exercises_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            flex=1,
+            background_color=self.theme('second_background')
+        ))
 
         if exercises:
 
@@ -482,13 +636,22 @@ class WorkoutTracker(toga.App):
 
                 exercise_label = toga.Label(
                     exercise['exercise_name'],
-                    style=Pack(padding=5, font_size=14, font_weight='bold')
+                    style=Pack(
+                        padding=5,
+                        font_size=14,
+                        font_weight='bold',
+                        color=self.theme('text')
+                    )
                 )
 
                 delete_exercise_btn = toga.Button(
                     "X",
                     on_press=lambda w, ex=exercise: self.confirm_delete_exercise(workout, ex),
-                    style=Pack(width=40, background_color='#d32f2f')
+                    style=Pack(
+                        width=40,
+                        background_color=self.theme('danger'),
+                        color=self.theme('text')
+                    )
                 )
 
                 # build exercise row
@@ -504,7 +667,11 @@ class WorkoutTracker(toga.App):
 
                         set_label = toga.Label(
                             f" {set_data['reps']} reps x {set_data['weight']} kg",
-                            style=Pack(padding_left=20, padding_top=2)
+                            style=Pack(
+                                padding_left=20,
+                                padding_top=2,
+                                color=self.theme('text')
+                            )
                         )
                         exercises_box.add(set_label)
 
@@ -513,7 +680,11 @@ class WorkoutTracker(toga.App):
 
                     none_label = toga.Label(
                         " No sets logged yet. ",
-                        style=Pack(padding_left=20, padding_top=2, color='#888')
+                        style=Pack(
+                            padding_left=20,
+                            padding_top=2,
+                            color=self.theme('text')
+                        )
                     )
                     exercises_box.add(none_label)
 
@@ -522,7 +693,11 @@ class WorkoutTracker(toga.App):
 
             no_exercise_label = toga.Label(
                     " No exercises logged yet. ",
-                    style=Pack(padding_left=20, text_align='center')
+                    style=Pack(
+                        padding_left=20,
+                        text_align='center',
+                        color=self.theme('text')
+                    )
                 )
             exercises_box.add(no_exercise_label)
 
@@ -530,14 +705,21 @@ class WorkoutTracker(toga.App):
         delete_btn = toga.Button(
             "Delete Workout",
             on_press=lambda widget: self.confirm_delete_workout(workout),
-            style=Pack(padding=10, background_color='#d32f2f')
+            style=Pack(
+                padding=10,
+                background_color=self.theme('danger'),
+                color=self.theme('text')
+            )
         )
 
         # button to add exercise to workout
         add_exercise_btn = toga.Button(
             "Add Exercise",
             on_press=lambda widget: self.add_exercise(workout),
-             style=Pack(padding=10)
+             style=Pack(
+                padding=10,
+                background_color=self.theme('primary'),
+                color=self.theme('text'))
         )
 
         # build whole display
@@ -553,18 +735,30 @@ class WorkoutTracker(toga.App):
     def add_exercise(self, workout):
         
         # main display
-        form_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+        form_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            background_color=self.theme('prime_background')
+        ))
 
         # header with selected workout name
         header_label = toga.Label(
             f"Add Exercise to {workout['name']}",
-            style=Pack(padding=10, font_size=16, font_weight='bold')
+            style=Pack(
+                padding=10,
+                font_size=16,
+                font_weight='bold',
+                color=self.theme('text')
+            )
         )
 
         # input to select existing or enter new exercise
         exercise_label = toga.Label(
             "Select Exercise:",
-            style=Pack(padding=5)
+            style=Pack(
+                padding=5,
+                color=self.theme('text')
+            )
         )
 
         # fetch existing exercises from db to display
@@ -577,13 +771,23 @@ class WorkoutTracker(toga.App):
         self.exercise_select = toga.Selection(
             items=exercise_items,
             on_change=lambda widget: self.toggle_new_exercise_input(widget),
-            style=Pack(padding=5, width=300)
+            style=Pack(
+                padding=5,
+                width=300,
+                background_color=self.theme('second_background'),
+                color=self.theme('text')
+            )
         )
 
         # input window for new exercise
         self.new_exercise_input = toga.TextInput(
             placeholder="Enter new exercise name",
-            style=Pack(padding=5, width=300)
+            style=Pack(
+                padding=5,
+                width=300,
+                background_color=self.theme('second_background'),
+                color=self.theme('text')
+            )
         )
         self.new_exercise_box = toga.Box(style=Pack(direction=COLUMN))
 
@@ -593,13 +797,23 @@ class WorkoutTracker(toga.App):
         cancel_btn = toga.Button(
             "Cancel",
             on_press=lambda widget: self.show_workout_detail(workout),
-            style=Pack(padding=5, width=100)
+            style=Pack(
+                padding=5,
+                width=100,
+                background_color=self.theme('danger'),
+                color=self.theme('text')
+            )
         )
 
         save_btn = toga.Button(
             "Save",
             on_press=lambda widget: self.save_exercise(workout),
-            style=Pack(padding=5, width=100)
+            style=Pack(
+                padding=5,
+                width=100,
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
 
         # build button box
@@ -666,31 +880,62 @@ class WorkoutTracker(toga.App):
     def add_sets(self, workout, workout_exercise_id):
         
         # main display box
-        form_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+        form_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            background_color=self.theme('prime_background')
+        ))
 
         header_label = toga.Label(
             "Add sets",
-            style=Pack(padding=10, font_size=16, font_weight='bold')
+            style=Pack(
+                padding=10,
+                font_size=16,
+                font_weight='bold',
+                color=self.theme('text')
+            )
         )
 
         # reps section for a set
-        reps_label = toga.Label("Reps:", style=Pack(padding=5))
+        reps_label = toga.Label(
+            "Reps:",
+            style=Pack(
+                padding=5,
+                color=self.theme('text')
+            )
+        )
 
         self.reps_input = toga.NumberInput(
             min=0,
             max=999,
             step=1,
-            style=Pack(padding=5, width=300)
+            style=Pack(
+                padding=5,
+                width=300,
+                background_color=self.theme('second_background'),
+                color=self.theme('text')
+            )
         )
 
         # weight section for a set
-        weight_label = toga.Label("Weight (kg):", style=Pack(padding=5))
+        weight_label = toga.Label(
+            "Weight (kg):",
+            style=Pack(
+                padding=5,
+                color=self.theme('text')
+            )
+        )
 
         self.weight_input = toga.NumberInput(
             min=0,
             max=999,
             step=0.125,
-            style=Pack(padding=5, width=300)
+            style=Pack(
+                padding=5,
+                width=300,
+                background_color=self.theme('second_background'),
+                color=self.theme('text')
+            )
         )
 
         # display element for adding a set/finishing and returning to workout details
@@ -700,14 +945,24 @@ class WorkoutTracker(toga.App):
         done_btn = toga.Button(
             "Done",
             on_press=lambda widget: self.show_workout_detail(workout),
-            style=Pack(padding=5, width=100)
+            style=Pack(
+                padding=5,
+                width=100,
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
 
         # add a set
         add_set_btn = toga.Button(
             "Add set",
             on_press=lambda widget: self.save_set(workout, workout_exercise_id),
-            style=Pack(padding=5, width=100)
+            style=Pack(
+                padding=5,
+                width=100,
+                background_color=self.theme('accent'),
+                color=self.theme('text')
+            )
         )
 
         # build button box
@@ -715,7 +970,11 @@ class WorkoutTracker(toga.App):
         button_box.add(add_set_btn)
             
         # added sets feedback
-        self.sets_list_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+        self.sets_list_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            background_color=self.theme('second_background')
+        ))
 
         # build main display
         form_box.add(header_label)
@@ -750,7 +1009,10 @@ class WorkoutTracker(toga.App):
         # feedback for added set
         set_label = toga.Label(
             f"Added {int(reps)} reps x {float(weight)} kg",
-            style=Pack(padding=5)
+            style=Pack(
+                padding=5,
+                background_color=self.theme('second_background'),
+                color=self.theme('text'))
         )
         self.sets_list_box.add(set_label)
 
@@ -805,12 +1067,28 @@ class WorkoutTracker(toga.App):
         weights = [d['max_weight'] for d in data_points['data_points']]
 
         fig, ax = plt.subplots(figsize=(8, 5))
-        ax.plot(dates, weights, marker='o', linestyle='-', linewidth=2, markersize=6)
+        fig.patch.set_facecolor(self.theme('prime_background'))
+        ax.set_facecolor(self.theme('second_background'))
 
-        ax.set_xlabel('Date')
-        ax.set_ylabel('Weight (kg)')
-        ax.set_title('Progress Over Time')
-        ax.grid(True, alpha=0.3)
+        ax.plot(
+            dates,
+            weights,
+            marker='o',
+            linestyle='-',
+            linewidth=2,
+            markersize=6,
+            color=self.theme('primary')
+        )
+
+        ax.set_xlabel('Date', color=self.theme('text'))
+        ax.set_ylabel('Weight (kg)', color=self.theme('text'))
+        ax.set_title('Progress Over Time', color=self.theme('text'))
+        ax.grid(True, alpha=0.3, color=self.theme('text'))
+        ax.tick_params(color=self.theme('text'))
+
+        for spine in ax.spines.values():
+
+            spine.set_color(self.theme('text'))
 
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
         plt.xticks(rotation=45)
@@ -818,7 +1096,7 @@ class WorkoutTracker(toga.App):
         plt.tight_layout()
 
         buf = io.BytesIO()
-        plt.savefig(buf, format='png', dpi=100)
+        plt.savefig(buf, format='png', dpi=100, facecolor=self.theme('prime_background'))
         buf.seek(0)
         chart_bytes = buf.read()
         buf.close()
@@ -831,10 +1109,18 @@ class WorkoutTracker(toga.App):
     def show_progress(self):
         
         # main display box
-        progress_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+        progress_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            background_color=self.theme('prime_background')
+        ))
 
         # header row with exercise dropdown and back button
-        header_box = toga.Box(style=Pack(direction=ROW, padding=10))
+        header_box = toga.Box(style=Pack(
+            direction=ROW,
+            padding=10,
+            background_color=self.theme('second_background')
+        ))
         # Need to add header here, otherwise it gets pushed down on the screen
         progress_box.add(header_box)
 
@@ -844,7 +1130,10 @@ class WorkoutTracker(toga.App):
 
             progress_box.add(toga.Label(
                 "No exercises logged yet.",
-                style=Pack(padding=10)
+                style=Pack(
+                    padding=10,
+                    color=self.theme('text')
+                )
             ))
 
         else:
@@ -853,22 +1142,40 @@ class WorkoutTracker(toga.App):
             exercise_selector = toga.Selection(
                 items=[ex['name'] for ex in exercises],
                 on_change=lambda w: self.load_exercise_progress(exercises, w.value),
-                style=Pack(flex=1, padding=5)
+                style=Pack(
+                    flex=1,
+                    padding=5,
+                    background_color=self.theme('second_background'),
+                    color=self.theme('text')
+                )
             )
             header_box.add(exercise_selector)
 
         back_btn = toga.Button(
             "Back",
             on_press=lambda w: self.show_calendar_view(),
-            style=Pack(width=80, padding=5)
+            style=Pack(
+                width=80,
+                padding=5,
+                background_color=self.theme('primary'),
+                color=self.theme('text'))
         )
 
         # build header
         header_box.add(back_btn)
 
         # charting and stats
-        self.chart_box = toga.Box(style=Pack(direction=COLUMN, padding=10, alignment='center'))
-        self.stats_box = toga.Box(style=Pack(direction=COLUMN, padding=10))
+        self.chart_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            alignment='center',
+            background_color=self.theme('second_background')
+        ))
+        self.stats_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            background_color=self.theme('second_background')
+        ))
 
         # build whole statistics display
         progress_box.add(self.chart_box)
@@ -893,8 +1200,13 @@ class WorkoutTracker(toga.App):
 
             self.chart_box.clear()
             self.stats_box.clear()
-            self.chart_box.add(toga.Label("No data for this exercise.",
-            style=Pack(padding=10)))
+            self.chart_box.add(toga.Label(
+                "No data for this exercise.",
+                style=Pack(
+                    padding=10,
+                    color=self.theme('text')
+                )
+            ))
 
             return
 
@@ -942,10 +1254,25 @@ class WorkoutTracker(toga.App):
     # helper for stat box creation
     def _stat_box(self, label, value):
         
-        box = toga.Box(style=Pack(direction=COLUMN, padding=10, flex=1, alignment='center'))
+        box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            flex=1,
+            alignment='center',
+            background_color=self.theme('prime_background')
+        ))
 
-        label_widget = toga.Label(label, style=Pack(font_size=10, padding=5))
-        value_widget = toga.Label(value, style=Pack(font_size=16, padding=5, font_weight='bold'))
+        label_widget = toga.Label(label, style=Pack(
+            font_size=10,
+            padding=5,
+            color=self.theme('text')
+        ))
+        value_widget = toga.Label(value, style=Pack(
+            font_size=16,
+            padding=5,
+            font_weight='bold',
+            color=self.theme('accent')
+        ))
 
         box.add(label_widget)
         box.add(value_widget)
@@ -956,29 +1283,54 @@ class WorkoutTracker(toga.App):
     # display settings screen with selector
     def show_settings(self):
         
-        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10, align_items='center'))
+        main_box = toga.Box(style=Pack(
+            direction=COLUMN,
+            padding=10,
+            align_items='center',
+            background_color=self.theme('prime_background')
+        ))
 
         header = toga.Label(
             'Settings',
-            style=Pack(padding=10, font_size=18, font_weight='bold', text_align='center')
+            style=Pack(
+                padding=10,
+                font_size=18,
+                font_weight='bold',
+                text_align='center',
+                color=self.theme('text')
+            )
         )
 
         theme_label = toga.Label(
             'Colour Theme:',
-            style=Pack(padding=5, text_align='center')
+            style=Pack(
+                padding=5,
+                text_align='center',
+                color=self.theme('text')
+            )
         )
 
         theme_select = toga.Selection(
             items=list(THEMES.keys()),
             value=self.current_theme,
-            on_change=lambda w: self.change_theme(w.values),
-            style=Pack(padding=5, width=200)
+            on_change=lambda w: self.change_theme(w.value),
+            style=Pack(
+                padding=5,
+                width=200,
+                background_color=self.theme('second_background'),
+                color=self.theme('text')
+            )
         )
 
         back_btn = toga.Button(
             'Back',
             on_press=lambda w: self.show_calendar_view(),
-            style=Pack(padding=10, width=100)
+            style=Pack(
+                padding=10,
+                width=100,
+                background_color=self.theme('primary'),
+                color=self.theme('text')
+            )
         )
 
         main_box.add(header)
