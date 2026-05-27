@@ -79,6 +79,14 @@ class WorkoutDB:
                 )
             ''')
 
+        # color theme table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+        ''')
+
         conn.commit()
         conn.close()
 
@@ -370,7 +378,8 @@ class WorkoutDB:
         cursor.execute("""
         INSERT INTO settings (key, value)
         VALUES (?, ?)
-        """, (key, value))
+        ON CONFLICT(key) DO UPDATE SET value = ?
+        """, (key, value, value))
         
         conn.commit()
         conn.close()

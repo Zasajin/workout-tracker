@@ -119,11 +119,18 @@ class WorkoutTracker(toga.App):
             on_press=self.next_month,
             style=Pack(width=50, padding=5)
         )
+
+        settings_btn = toga.Button(
+            '\u2699\uFE0F',
+            on_press=lambda w: self.show_settings(),
+            style=Pack(width=40, height=40)
+        )
         
         nav_box = toga.Box(style=Pack(direction=ROW, padding=5))
         nav_box.add(prev_btn)
         nav_box.add(self.month_label)
         nav_box.add(next_btn)
+        nav_box.add(settings_btn)
         
         return nav_box
 
@@ -946,17 +953,52 @@ class WorkoutTracker(toga.App):
         return box
 
 
-    # TODO: display settings screen with selector
+    # display settings screen with selector
     def show_settings(self):
-        pass
+        
+        main_box = toga.Box(style=Pack(direction=COLUMN, padding=10, align_items='center'))
+
+        header = toga.Label(
+            'Settings',
+            style=Pack(padding=10, font_size=18, font_weight='bold', text_align='center')
+        )
+
+        theme_label = toga.Label(
+            'Colour Theme:',
+            style=Pack(padding=5, text_align='center')
+        )
+
+        theme_select = toga.Selection(
+            items=list(THEMES.keys()),
+            value=self.current_theme,
+            on_change=lambda w: self.change_theme(w.values),
+            style=Pack(padding=5, width=200)
+        )
+
+        back_btn = toga.Button(
+            'Back',
+            on_press=lambda w: self.show_calendar_view(),
+            style=Pack(padding=10, width=100)
+        )
+
+        main_box.add(header)
+        main_box.add(theme_label)
+        main_box.add(theme_select)
+        main_box.add(back_btn)
+
+        self.main_window.content = main_box
 
 
-    # TODO: apply selected theme to app
+    # apply selected theme to app
     def change_theme(self, theme_name):
-        pass
+
+        self.current_theme = theme_name
+        self.db.save_setting('theme', theme_name)
+
+        self.show_calendar_view()
 
 
-    # TODO: helper to select colors from theme
+    # helper to select colors from theme
     def theme(self, key: str) -> str:
 
         return THEMES[self.current_theme][key]
