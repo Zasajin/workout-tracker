@@ -17,7 +17,7 @@ from wt25.database import WorkoutDB
 THEMES = {
 
     'Light': {
-        'prime_background': '#FFFFF',
+        'prime_background': '#FFFFFF',
         'second_background': '#F5F5F5',
         'text': '#000000',
         'primary': '#1976D2',
@@ -466,7 +466,7 @@ class WorkoutTracker(toga.App):
             style=Pack(
                 alignment='center',
                 padding=10,
-                background_color=self.theme('primeary'),
+                background_color=self.theme('primary'),
                 color=self.theme('text')
             )
         )
@@ -594,7 +594,7 @@ class WorkoutTracker(toga.App):
             style=Pack(
                 width=80,
                 padding=5,
-                background_color=self.theme('primary')
+                background_color=self.theme('primary'),
                 color=self.theme('text')
             )
         )
@@ -1345,7 +1345,7 @@ class WorkoutTracker(toga.App):
     def change_theme(self, theme_name):
 
         self.current_theme = theme_name
-        self.db.save_setting('theme', theme_name)
+        self.db.set_setting('theme', theme_name)
 
         self.show_calendar_view()
 
