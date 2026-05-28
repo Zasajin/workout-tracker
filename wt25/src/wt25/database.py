@@ -8,15 +8,18 @@ class WorkoutDB:
 
 
     # initialize database
-    def __init__(self, db_path: str = "workouts.db"):
+    def __init__(self, db_path: str):
 
-        self.db_path = db_path
+        self.db_path = str(db_path)
         self._create_tables()
 
 
     # establish connection to db
     def _get_connection(self) -> sqlite3.Connection:
 
+        # debug
+        print(f"DEBUG: Database at: {os.path.abspath(self.db_path)}")
+        
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
 
@@ -68,9 +71,24 @@ class WorkoutDB:
             )
         ''')
 
+        # settings table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+                )
+            ''')
+
+        # color theme table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+        ''')
+
         conn.commit()
         conn.close()
-
 
 # -- Workout Methods --
 
@@ -335,3 +353,33 @@ class WorkoutDB:
         'stats': stats
 
         }
+
+# -- Settings Methods --
+
+    # retrieve a setting value by key
+    def get_setting(self, key: str, default=None) -> str:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT value FROM settings WHERE key = ?", (key,))
+
+        row = cursor.fetchone()
+        conn.close()
+
+        return row['value'] if row else default
+
+    # sets new setting values to db
+    def set_setting(self, key: str, value: str) -> None:
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO settings (key, value)
+        VALUES (?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = ?
+        """, (key, value, value))
+        
+        conn.commit()
+        conn.close()
