@@ -50,7 +50,9 @@ briefcase build
 briefcase package
 ```
 
-Scheduled changes:
+# Scheduled changes:
+
 - refining add_exercise()
 - adjusting display boxes (width/height, e.g calender box)
+- adjust color themes
 - refactoring code base
